@@ -242,13 +242,25 @@ img.avatar { object-fit: cover; }
 .members-toggle { display: flex; align-items: center; gap: var(--sp-12); width: 100%; min-height: 56px; padding: 0 var(--sp-20); border: 0; border-radius: var(--radius-card); background: var(--surface); font-weight: 600; text-align: left; }
 .members-toggle .chevron { transition: rotate var(--base) var(--ease); }
 .members-section.open .members-toggle .chevron { rotate: 90deg; }
-.members-collapse { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows var(--base) var(--ease), opacity var(--base) var(--ease); }
-.members-section.open .members-collapse { grid-template-rows: 1fr; opacity: 1; }
-/* Clips while it slides; the side padding leaves room for the cards' shadows.
-   Space above and below sits inside the clip (as margins), so shut means no height at all. */
-.members-body { display: grid; gap: var(--sp-12); min-height: 0; margin: 0 calc(-1 * var(--sp-16)); padding: 0 var(--sp-16); overflow: hidden; }
-.members-body > :first-child { margin-top: var(--sp-12); }
-.members-body > :last-child { margin-bottom: var(--sp-4); }
+/* Three layers, so a frame of the slide only moves pixels, never redraws the list:
+   - .members-collapse grows its one row from 0fr to 1fr (the height)
+   - .members-clip crops the list to that height
+   - .members-body keeps its own size throughout and only fades and drops in,
+     which the GPU does on its own (fading the resizing layer instead made
+     the whole list repaint every frame) */
+.members-collapse { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--base) var(--ease); }
+.members-section.open .members-collapse { grid-template-rows: 1fr; }
+/* The side padding leaves room for the cards' shadows; no vertical padding, so shut is zero height */
+.members-clip { min-height: 0; margin: 0 calc(-1 * var(--sp-16)); padding: 0 var(--sp-16); overflow: hidden; }
+.members-body {
+  display: grid;
+  gap: var(--sp-12);
+  padding: var(--sp-12) 0 var(--sp-4);
+  opacity: 0;
+  translate: 0 calc(-1 * var(--sp-12));
+  transition: opacity var(--base) var(--ease), translate var(--base) var(--ease);
+}
+.members-section.open .members-body { opacity: 1; translate: 0 0; }
 
 /* Liquid glass switch (glass-switch.tsx): iPhone's green and gray track, and
    a knob that is always a glass lens, bigger than the track and spilling past

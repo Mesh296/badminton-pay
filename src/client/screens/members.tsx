@@ -117,6 +117,7 @@ function MembersSection() {
         <Icon name="chevron-right" className="small chevron" />
       </button>
       <div id={bodyId} className="members-collapse" inert={!shown}>
+      <div className="members-clip">
       <div className="members-body">
         {admin &&
           (open === "new" ? (
@@ -170,6 +171,7 @@ function MembersSection() {
             })}
           </ul>
         )}
+      </div>
       </div>
       </div>
     </section>
