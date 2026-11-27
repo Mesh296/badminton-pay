@@ -12,6 +12,10 @@ export function PushToggle({ offerOnly = false }: { offerOnly?: boolean }) {
   const labelId = useId();
   const [status, setStatus] = useState<PushStatus | null>(null);
   const [busy, setBusy] = useState(false);
+  // Where the switch was just flipped to. Turning on asks for permission and
+  // registers with the push service, which takes a moment; the knob slides at
+  // once instead of waiting for all that, and slides back if it fails.
+  const [wanted, setWanted] = useState<boolean | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
   useEffect(() => {
     void readStatus().then(setStatus);
@@ -20,7 +24,10 @@ export function PushToggle({ offerOnly = false }: { offerOnly?: boolean }) {
   if (status === null || (offerOnly && status !== "off" && !busy)) return null;
 
   const toggle = async (on: boolean) => {
+    // One change at a time; the switch stays as it is, not dimmed, meanwhile.
+    if (busy) return;
     setBusy(true);
+    setWanted(on);
     setProblem(null);
     try {
       if (on) {
@@ -33,6 +40,7 @@ export function PushToggle({ offerOnly = false }: { offerOnly?: boolean }) {
       setProblem(error instanceof Error ? error.message : "Chưa bật được thông báo");
     } finally {
       setBusy(false);
+      setWanted(null);
     }
   };
 
@@ -58,8 +66,8 @@ export function PushToggle({ offerOnly = false }: { offerOnly?: boolean }) {
         <span className="row-sub">{note ?? (offerOnly ? "Điện thoại sẽ đổ chuông" : "Báo khi có người chuyển tiền cho bạn")}</span>
       </span>
       <GlassSwitch
-        checked={status === "on"}
-        disabled={busy || status === "unsupported" || status === "blocked"}
+        checked={wanted ?? status === "on"}
+        disabled={status === "unsupported" || status === "blocked"}
         onChange={(on) => void toggle(on)}
         labelledBy={labelId}
       />
