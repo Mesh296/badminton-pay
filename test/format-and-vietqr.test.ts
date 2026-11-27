@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { parseCssTimeMs } from "../src/client/css-time";
 import { formatMoney, formatMoneyInput, formatMonth, parseMoney } from "../src/client/format";
 import { BANK_APPS, BANKS } from "../src/shared/banks";
-import { bankAppUrl, stripDiacritics, transferMemo, vietQrUrl } from "../src/shared/vietqr";
+import { bankAppUrl, stripDiacritics, transferMemo, vietQrPayload } from "../src/shared/vietqr";
 
 describe("CSS timing tokens", () => {
   it("reads both units, since the production build rewrites 420ms as .42s", () => {
@@ -43,20 +43,11 @@ describe("VietQR", () => {
     expect(transferMemo("x".repeat(80)).length).toBe(50);
   });
 
-  it("builds the quick-link image URL", () => {
-    const url = new URL(
-      vietQrUrl({
-        bankCode: "970436",
-        accountNo: "0123456789",
-        accountName: "TRAN VAN A",
-        amount: 66_000,
-        memo: "Cau long An",
-      }),
+  it("builds the same transfer code as VietQR's own image service", () => {
+    // Decoded from https://img.vietqr.io/image/970436-0123456789-qr_only.png?amount=66000&addInfo=Cau%20long%20An
+    expect(vietQrPayload({ bankCode: "970436", accountNo: "0123456789", amount: 66_000, memo: "Cau long An" })).toBe(
+      "00020101021238540010A00000072701240006970436011001234567890208QRIBFTTA53037045405660005802VN62150811Cau long An6304098F",
     );
-    expect(url.origin + url.pathname).toBe("https://img.vietqr.io/image/970436-0123456789-compact2.png");
-    expect(url.searchParams.get("amount")).toBe("66000");
-    expect(url.searchParams.get("addInfo")).toBe("Cau long An");
-    expect(url.searchParams.get("accountName")).toBe("TRAN VAN A");
   });
 });
 

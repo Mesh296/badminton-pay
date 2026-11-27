@@ -94,7 +94,7 @@ Tại thời điểm viết (11/2026): Workers 100.000 request/ngày, D1 5 tri�
 ## Bảo mật cần biết
 
 - Ai có địa chỉ app đều xem được tên, số dư và số tài khoản ngân hàng của thành viên. Email của thành viên chỉ quản trị thấy.
-- Mã QR do `img.vietqr.io` tạo, và nút "Mở app ngân hàng" đi qua trang `dl.vietqr.io`, cả hai của VietQR (Casso). Số tài khoản, tên chủ tài khoản, số tiền và nội dung chuyển đi qua dịch vụ đó; địa chỉ app thì không (app không gửi Referer sang trang khác). Trước khi bấm chuyển trong app ngân hàng, xem tên người nhận do ngân hàng hiện ra có đúng người không.
+- Mã QR do chính app tạo ngay trên máy, không qua dịch vụ nào. Nút "Mở app ngân hàng" thì đi qua trang `dl.vietqr.io` của VietQR (Casso): số tài khoản, tên chủ tài khoản, số tiền và nội dung đi qua dịch vụ đó; địa chỉ app thì không (app không gửi Referer sang trang khác). Trước khi bấm chuyển trong app ngân hàng, xem tên người nhận do ngân hàng hiện ra có đúng người không (app nhắc tên đúng ngay dưới nút).
 - Phiên đăng nhập là cookie có chữ ký, sống 1 năm. Mất máy thì đổi `SESSION_SECRET` để đăng xuất mọi người.
 - Quyền đã bó hẹp: buổi do người ứng (hoặc quản trị) ghi, chuyển khoản do người nhận (hoặc quản trị) ghi.
 - Mỗi lần thêm, sửa, xóa buổi hay ghi, hủy chuyển khoản đều vào nhật ký (tab **Lịch sử** → **Nhật ký**): ai làm, lúc nào, trước và sau thế nào. Cả nhóm xem được, nên ghi buổi giả để trừ nợ hay hủy một khoản đã nhận đều lộ tên người làm. Buổi hoặc khoản bị xóa khôi phục được ngay từ nhật ký; app không có cách sửa hay xóa nhật ký.

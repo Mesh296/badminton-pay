@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { BANK_APPS, BANKS } from "../../shared/banks";
 import type { Member } from "../../shared/types";
-import { bankAppUrl, transferMemo, vietQrUrl } from "../../shared/vietqr";
+import { bankAppUrl, transferMemo, vietQrPayload } from "../../shared/vietqr";
 import { useApp } from "../app-context";
 import { formatMoney, todayIso } from "../format";
 import { Icon } from "../icons";
 import { MoneyInput } from "../money-input";
+import { QrCode } from "../qr-code";
 
 interface Props {
   from: Member;
@@ -70,21 +71,9 @@ export function TransferCard({ from, to, amount }: Props) {
 
       {hasAccount ? (
         <>
-          <img
-            className="qr"
-            src={vietQrUrl({
-              bankCode: to.bankCode!,
-              accountNo: to.accountNo!,
-              accountName: to.accountName,
-              amount,
-              memo,
-            })}
-            alt={`Mã QR chuyển ${formatMoney(amount)} cho ${to.name}`}
-            width={240}
-            height={240}
-            loading="lazy"
-            // Keeps this app's address (the only thing guarding the public data) out of the QR service's logs.
-            referrerPolicy="no-referrer"
+          <QrCode
+            text={vietQrPayload({ bankCode: to.bankCode!, accountNo: to.accountNo!, amount, memo })}
+            label={`Mã QR chuyển ${formatMoney(amount)} cho ${to.name}`}
           />
           <p className="account">
             {bank?.name} · <span className="mono">{to.accountNo}</span>
@@ -141,6 +130,9 @@ export function TransferCard({ from, to, amount }: Props) {
                   </p>
                 </>
               )}
+              {/* The bank shows the real account holder before sending; a name that
+                  differs means the details were changed somewhere on the way. */}
+              {to.accountName && <p className="hint">Tên người nhận trong app ngân hàng phải là {to.accountName}</p>}
             </div>
           )}
         </>
