@@ -33,13 +33,13 @@ Deploy, đăng nhập Google, cập nhật, sao lưu:
 - Mỗi phần làm tròn lên 1.000đ. Người ứng tiền được ghi nhận tổng các phần đã chia, nên phần dư do làm tròn thuộc về người ứng.
 - Số dư mỗi người = tiền đã ứng − phần phải chia + tiền đã chuyển − tiền đã nhận. Tổng số dư cả nhóm luôn bằng 0.
 - App gợi ý ai chuyển cho ai, kèm mã QR và nút mở thẳng app ngân hàng trên iPhone (MB Bank, VietinBank, BIDV, ACB, OCB tự điền sẵn STK, số tiền, nội dung; app khác chỉ mở, STK được chép sẵn).
-- App gợi ý ai chuyển cho ai; người nhận tiền bấm "Đã nhận" khi tiền về. Tiền về không khớp gợi ý nào (gợi ý đã đổi vì có buổi mới) thì người nhận bấm "Ghi tiền đã nhận" ở trang của mình, chọn người chuyển và số tiền.
+- App gợi ý ai chuyển cho ai. Người nợ chuyển xong bấm "Đã chuyển"; người nhận thấy thông báo ở đầu màn Số dư và bấm "Đã nhận" khi tiền về (hoặc "Chưa nhận"). Chỉ khi người nhận xác nhận thì số dư mới đổi. Người nhận cũng tự bấm "Đã nhận" được khi chưa ai báo (vd. trả tiền mặt). Tiền về không khớp gợi ý nào (gợi ý đã đổi vì có buổi mới) thì người nhận bấm "Ghi tiền đã nhận" ở trang của mình, chọn người chuyển và số tiền.
 
 ## Ai làm được gì
 
 - Xem thì không cần đăng nhập. Sửa thì đăng nhập một lần bằng Google, điền tên và số tài khoản để xin vào nhóm, rồi chờ quản trị bấm duyệt.
 - Thành viên chỉ nhập, sửa, xóa buổi do chính mình ứng tiền.
-- Chỉ người nhận tiền mới ghi nhận "Đã nhận", nên người nợ không tự xóa nợ được.
+- Chỉ người nhận tiền mới ghi nhận "Đã nhận", nên người nợ không tự xóa nợ được: "Đã chuyển" chỉ là lời báo.
 - Lỡ nhập sai: bấm vào buổi hoặc khoản chuyển trong tab Lịch sử để sửa hoặc xóa (người ứng, người nhận, hoặc quản trị).
 - Nhật ký (tab Lịch sử → Nhật ký) ghi ai thêm, sửa, xóa buổi hay chuyển khoản, lúc nào, trước và sau; ai cũng xem được, thay đổi đụng tới mình có chữ "Có bạn", thứ bị xóa khôi phục được.
 - Thành viên tự sửa tên và số tài khoản của mình.

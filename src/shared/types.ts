@@ -80,6 +80,8 @@ export interface AppState {
   members: Member[];
   sessions: Session[];
   transfers: Transfer[];
+  /** Payments a payer reported sending, oldest first. Not in any balance until the receiver confirms them. */
+  claims: Transfer[];
   /** null for a visitor who is not signed in. */
   me: Me | null;
   /** Open requests to join: all of them for an admin, only their own for anyone else. */

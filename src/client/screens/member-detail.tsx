@@ -3,6 +3,7 @@ import { formatDate, formatMoney, todayIso } from "../format";
 import { Icon } from "../icons";
 import { Avatar, BalanceLabel } from "../member-visuals";
 import { RecordReceivedCard } from "./record-received-card";
+import { ClaimsCard } from "./settle-actions";
 import { TransferCard } from "./transfer-card";
 
 // One member's view: balance, who to pay (with QR) or who will pay them, and
@@ -48,6 +49,8 @@ export function MemberDetail({ id }: { id: number }) {
         ) : null;
       })}
 
+      {actsAs(id) && <ClaimsCard claims={state.claims.filter((c) => c.toId === id)} />}
+
       {toReceive.length > 0 && (
         <section className="card surface">
           <h3>Sẽ nhận</h3>
@@ -69,8 +72,10 @@ export function MemberDetail({ id }: { id: number }) {
         </section>
       )}
 
-      {/* For payments that no longer match a suggestion above */}
-      {actsAs(id) && <RecordReceivedCard receiver={member} />}
+      {/* For payments that no longer match a suggestion above. Not while this
+          member owes: then the money goes the other way, and the payer's own
+          button is "Đã chuyển" on the card above. */}
+      {actsAs(id) && balance >= 0 && <RecordReceivedCard receiver={member} />}
 
       <h3 className="section-title">Tiền từng buổi</h3>
       {sessions.length === 0 ? (

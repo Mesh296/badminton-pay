@@ -11,11 +11,11 @@ import { transferSchema } from "./validation";
 // their own debt.
 export const transferRoutes = new Hono<AppEnv>();
 
-const isReceiver = (c: Context<AppEnv>, toId: number) => {
+export const isReceiver = (c: Context<AppEnv>, toId: number) => {
   const actor = c.get("actor");
   return Boolean(actor?.admin) || (actor?.memberId != null && actor.memberId === toId);
 };
-const notReceiver = (c: Context<AppEnv>) => c.json({ error: "Chỉ người nhận mới xác nhận được" }, 403);
+export const notReceiver = (c: Context<AppEnv>) => c.json({ error: "Chỉ người nhận mới xác nhận được" }, 403);
 
 transferRoutes.post("/", async (c) => {
   const body = await readBody(c, transferSchema);

@@ -120,13 +120,14 @@ async function loadJoinRequests(db: D1Database, actor: Me | null): Promise<JoinR
  * Ceiling: whole-history payload; move aggregation into SQL if it nears ~1 MB.
  */
 export async function loadState(db: D1Database, actor: Me | null): Promise<AppState> {
-  const [members, sessions, attendees, transfers, activity] = await db.batch([
+  const [members, sessions, attendees, transfers, claims, activity] = await db.batch([
     db.prepare("SELECT id, name, bank_code, account_no, account_name, active, email FROM members ORDER BY id"),
     db.prepare(
       "SELECT id, date, payer_id, court_amount, drink_amount, note FROM sessions ORDER BY date DESC, rowid DESC",
     ),
     db.prepare("SELECT session_id, member_id, drank, hours, share FROM session_attendees ORDER BY member_id"),
     db.prepare("SELECT id, date, from_id, to_id, amount, note FROM transfers ORDER BY date DESC, id DESC"),
+    db.prepare("SELECT id, date, from_id, to_id, amount, note FROM transfer_claims ORDER BY id"),
     db.prepare("SELECT * FROM activity_log ORDER BY id DESC LIMIT ?").bind(ACTIVITY_SHOWN),
   ]);
 
@@ -149,6 +150,7 @@ export async function loadState(db: D1Database, actor: Me | null): Promise<AppSt
     })),
     sessions: (sessions.results as SessionRow[]).map((row) => sessionFromRow(row, attendeesBySession.get(row.id) ?? [])),
     transfers: (transfers.results as TransferRow[]).map(transferFromRow),
+    claims: (claims.results as TransferRow[]).map(transferFromRow),
     me: actor,
     joinRequests: await loadJoinRequests(db, actor),
     activity: (activity.results as ActivityRow[]).map((row) => activityFromRow(row, Boolean(actor?.admin))),

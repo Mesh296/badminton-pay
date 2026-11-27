@@ -3,10 +3,10 @@ import { BANK_APPS, BANKS } from "../../shared/banks";
 import type { Member } from "../../shared/types";
 import { bankAppUrl, transferMemo, vietQrPayload } from "../../shared/vietqr";
 import { useApp } from "../app-context";
-import { formatMoney, todayIso } from "../format";
+import { formatMoney } from "../format";
 import { Icon } from "../icons";
-import { MoneyInput } from "../money-input";
 import { QrCode } from "../qr-code";
+import { SettleActions } from "./settle-actions";
 
 interface Props {
   from: Member;
@@ -17,16 +17,11 @@ interface Props {
 /** The banking app this phone pays with, remembered between visits */
 const BANK_APP_KEY = "bank-app";
 
-// One suggested payment: who to pay, how much, the VietQR code, and a button
-// that opens the payer's banking app on the transfer. Only the receiver (or an
-// admin) gets the button that records the money as received; the payer sees
-// that it is waiting for them.
+// One suggested payment: who to pay, how much, the VietQR code, a button that
+// opens the payer's banking app on the transfer, and the buttons to settle it:
+// the payer reports it sent, the receiver confirms it arrived.
 export function TransferCard({ from, to, amount }: Props) {
-  const { write, actsAs, me } = useApp();
-  const canConfirm = actsAs(to.id);
-  const [confirming, setConfirming] = useState(false);
-  const [paid, setPaid] = useState(amount);
-  const [saving, setSaving] = useState(false);
+  const { me } = useApp();
   const [copied, setCopied] = useState(false);
   const [appId, setAppId] = useState(() => localStorage.getItem(BANK_APP_KEY) ?? "");
 
@@ -49,18 +44,6 @@ export function TransferCard({ from, to, amount }: Props) {
     } catch {
       setCopied(false);
     }
-  };
-
-  const record = async () => {
-    setSaving(true);
-    const ok = await write("POST", "/api/transfers", {
-      date: todayIso(),
-      fromId: from.id,
-      toId: to.id,
-      amount: paid,
-    });
-    setSaving(false);
-    if (ok) setConfirming(false);
   };
 
   return (
@@ -140,26 +123,7 @@ export function TransferCard({ from, to, amount }: Props) {
         <p className="muted">{to.name} chưa có số tài khoản. Hỏi trực tiếp.</p>
       )}
 
-      {!canConfirm ? (
-        <p className="hint">Chờ {to.name} xác nhận đã nhận</p>
-      ) : confirming ? (
-        <div className="confirm">
-          <MoneyInput label="Số tiền" value={paid} onChange={setPaid} />
-          <div className="row-buttons">
-            <button type="button" className="button secondary" onClick={() => setConfirming(false)}>
-              Hủy
-            </button>
-            <button type="button" className="button" onClick={record} disabled={saving || paid <= 0}>
-              {saving ? "Đang lưu…" : "Xác nhận"}
-            </button>
-          </div>
-        </div>
-      ) : (
-        <button type="button" className="button" onClick={() => setConfirming(true)}>
-          <Icon name="check" className="small" />
-          Đã nhận
-        </button>
-      )}
+      <SettleActions from={from} to={to} amount={amount} />
     </section>
   );
 }

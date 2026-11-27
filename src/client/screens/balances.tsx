@@ -3,6 +3,7 @@ import { useApp } from "../app-context";
 import { byName, formatMoney } from "../format";
 import { Icon } from "../icons";
 import { Avatar, BalanceLabel } from "../member-visuals";
+import { ClaimsCard } from "./settle-actions";
 
 // Home screen: group total and everyone's balance (debtors first).
 export function Balances() {
@@ -45,9 +46,12 @@ export function Balances() {
   }
 
   const totalDebt = rows.reduce((sum, row) => sum + Math.max(0, -row.balance), 0);
+  // Payments others reported sending to whoever is looking, first thing they see.
+  const incoming = state.claims.filter((c) => me?.memberId != null && c.toId === me.memberId);
 
   return (
     <>
+      <ClaimsCard claims={incoming} />
       <section className="hero surface">
         <p className="eyebrow">{totalDebt > 0 ? "Cả nhóm còn nợ" : "Cả nhóm"}</p>
         <p className="hero-amount">{totalDebt > 0 ? formatMoney(totalDebt) : "Hết nợ"}</p>
