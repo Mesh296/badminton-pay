@@ -37,7 +37,7 @@ Source of decisions: [brainstorm report](../reports/brainstorm-261127-0952-badmi
 | Payer | Varies per session; may be a non-attendee |
 | Debt tracking | Running balance per member, derived from raw rows, never stored |
 | Settlement | Greedy "largest debtor pays largest creditor", at most n-1 transfers; recording a transfer is manual |
-| Hosting | Changed 2026-11-27: the user has a VPS (Ubuntu, Docker). Production = Docker Compose: Node + SQLite file behind Caddy (HTTPS). The Worker + D1 path stays for dev and tests; the API code is shared through a thin D1-over-SQLite adapter (`src/server/`) |
+| Hosting | Cloudflare Workers + D1 for now; the VPS (Oracle, Ubuntu, Docker) later, once its ports 80/443 are opened. VPS path = Docker Compose: Node + SQLite file behind Caddy (HTTPS). The Worker + D1 path stays for dev and tests; the API code is shared through a thin D1-over-SQLite adapter (`src/server/`) |
 | Write access | Google sign-in per member (replaced the shared PIN, phase 5). Payer owns their sessions, receiver confirms transfers, admins manage members |
 | Read access | Public to anyone with the link (includes names, balances, bank account numbers) |
 | VietQR | `<img>` from `img.vietqr.io` |

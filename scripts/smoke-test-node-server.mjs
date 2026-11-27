@@ -3,7 +3,7 @@
 // Run with: npm run test:server
 import { spawn } from "node:child_process";
 import { createHmac } from "node:crypto";
-import { existsSync, mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -144,6 +144,26 @@ try {
   await ready();
   state = (await call("GET", "/api/state")).json;
   check("data survives a restart", state.members.length === 4 && state.sessions.length === 1, { members: state.members.length, sessions: state.sessions.length });
+
+  // A database that came from a Cloudflare D1 export: schema and data present,
+  // migrations recorded in D1's own table. The server must adopt it, not re-run them.
+  await stop();
+  const imported = path.join(dataDir, "app.db");
+  rmSync(imported);
+  const { DatabaseSync } = await import("node:sqlite");
+  const seed = new DatabaseSync(imported);
+  seed.exec("CREATE TABLE d1_migrations (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL)");
+  for (const file of readdirSync(path.join(root, "migrations")).sort()) {
+    seed.exec(readFileSync(path.join(root, "migrations", file), "utf8"));
+    seed.prepare("INSERT INTO d1_migrations (name) VALUES (?)").run(file);
+  }
+  seed.exec("INSERT INTO members (name, email) VALUES ('Từ Cloudflare', 'moved@example.test')");
+  seed.close();
+  start();
+  await ready();
+  state = (await call("GET", "/api/state", undefined, ADMIN)).json;
+  check("a database exported from Cloudflare D1 is adopted as is", state.members.length === 1 && state.members[0].email === "moved@example.test", state.members);
+  check("and stays writable", (await call("POST", "/api/members", { name: "Mới" }, ADMIN)).status === 201);
 } catch (error) {
   check("smoke test completed", false, String(error));
 } finally {

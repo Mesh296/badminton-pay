@@ -11,7 +11,7 @@ dependencies: [1, 2, 3]
 
 ## Overview
 
-> Target changed on 2026-11-27 from Cloudflare to the user's VPS (Ubuntu + Docker, no domain yet). Steps to follow are in `docs/deployment-guide.md`: install Docker, point a domain at the VPS, create the Google OAuth client, fill `.env`, `docker compose up -d --build`. The wrangler steps below apply only if deploying to Cloudflare instead. Verified locally: image build, Compose stack with Caddy, backup and restore, data surviving a container recreate. Not verified: real domain + certificate, real Google sign-in, iPhone.
+> Target changed on 2026-11-27 from Cloudflare to the user's VPS (Ubuntu + Docker, no domain yet). Steps to follow are in `docs/deployment-guide.md`: install Docker, point a domain at the VPS, create the Google OAuth client, fill `.env`, `docker compose up -d --build`. The wrangler steps below apply only if deploying to Cloudflare instead. Verified locally: image build, Compose stack with Caddy, backup and restore, data surviving a container recreate. Not verified: real domain + certificate, real Google sign-in, iPhone. Update, same day: the VPS is on Oracle Cloud, only port 22 is reachable and the user cannot change its Security List (owner offline). Decision: deploy to Cloudflare now (`docs/deployment-guide-cloudflare.md`, the wrangler steps below), move to the VPS once ports 80/443 are opened. The D1-to-SQLite move is documented and was tried locally with a real D1 export.
 
 Create the production D1 database, set the sign-in secrets, deploy the Worker, verify on a real iPhone, and write the short docs the group and future maintainer need.
 

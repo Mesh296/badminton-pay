@@ -1,6 +1,6 @@
 # badminton-pay
 
-Web app (PWA) chia tiền cầu lông cho nhóm 10-12 người. React + Vite và Hono API. Bản chạy thật là Docker trên VPS (Node + một file SQLite); khi dev và chạy test thì dùng bộ giả lập Cloudflare Workers + D1 có sẵn trong repo, cùng một code API.
+Web app (PWA) chia tiền cầu lông cho nhóm 10-12 người. React + Vite và Hono API. Cùng một code API chạy được ở hai nơi: Cloudflare Workers + D1 (cũng là môi trường khi dev và chạy test), hoặc Docker trên VPS (Node + một file SQLite).
 
 ## Phát triển local
 
@@ -16,10 +16,14 @@ npm run dev                      # http://localhost:5173
 | `npm run typecheck` | Kiểm tra kiểu |
 | `npm run test` | Chạy test |
 | `npm run build` | Build giao diện |
+| `npm run deploy` | Build và deploy lên Cloudflare |
 | `npm run test:server` | Build bản chạy trên server (Node + SQLite) và kiểm tra đầu-cuối |
 | `npm run cf-typegen` | Sinh lại kiểu binding sau khi sửa `wrangler.jsonc` |
 
-Deploy lên VPS bằng Docker, tên miền, đăng nhập Google, sao lưu: xem [docs/deployment-guide.md](docs/deployment-guide.md).
+Deploy, đăng nhập Google, cập nhật, sao lưu:
+
+- Cloudflare Workers + D1 (đang dùng): [docs/deployment-guide-cloudflare.md](docs/deployment-guide-cloudflare.md)
+- VPS bằng Docker (khi server mở được cổng 80/443), kèm cách chuyển dữ liệu sang: [docs/deployment-guide.md](docs/deployment-guide.md)
 
 ## Cách tính tiền
 

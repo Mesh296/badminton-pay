@@ -45,6 +45,12 @@ class Statement {
 /** Applies each migrations/*.sql file once, in name order, each in its own transaction. */
 function migrate(db: DatabaseSync, migrationsDir: string) {
   db.exec("CREATE TABLE IF NOT EXISTS _migrations (name TEXT PRIMARY KEY)");
+  // A database imported from a Cloudflare D1 export already has the schema,
+  // and D1's own record of which files were applied. Take that record over so
+  // those files are not run a second time.
+  if (db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'd1_migrations'").get()) {
+    db.exec("INSERT OR IGNORE INTO _migrations (name) SELECT name FROM d1_migrations");
+  }
   const files = readdirSync(migrationsDir)
     .filter((file) => file.endsWith(".sql"))
     .sort();

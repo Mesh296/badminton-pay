@@ -1,4 +1,6 @@
-# Hướng dẫn deploy
+# Hướng dẫn deploy lên VPS (Docker)
+
+Không có VPS, hoặc VPS chưa mở được cổng 80 và 443: dùng [deployment-guide-cloudflare.md](deployment-guide-cloudflare.md).
 
 App chạy trên một VPS Linux bằng Docker, gồm hai container:
 
@@ -7,7 +9,7 @@ App chạy trên một VPS Linux bằng Docker, gồm hai container:
 
 ## Cần có
 
-- VPS Ubuntu có quyền `sudo`, mở cổng 80 và 443 (cả tường lửa của nhà cung cấp lẫn `ufw` nếu đang bật).
+- VPS Ubuntu có quyền `sudo`, mở cổng TCP 80 và 443 ở cả hai lớp: tường lửa của nhà cung cấp (Oracle Cloud: luật Ingress trong Security List của subnet, cần quyền trên trang quản trị) và trên máy (`ufw`, hoặc `iptables` với Ubuntu của Oracle). Thử từ máy khác: `nc -vz <IP> 443` hết thời gian chờ nghĩa là còn bị chặn.
 - Một tên miền trỏ về IP của VPS. Đăng nhập Google chỉ chạy trên tên miền có HTTPS; Google không nhận địa chỉ IP.
 - Một tài khoản Google để tạo phần đăng nhập.
 
@@ -147,6 +149,6 @@ Người nợ không tự bấm xóa nợ được: chỉ người nhận tiền
 - App không lưu nhật ký ai sửa gì. Quyền đã bó hẹp: buổi do người ứng (hoặc quản trị) ghi, chuyển khoản do người nhận (hoặc quản trị) ghi.
 - `PUBLIC_URL` phải đúng địa chỉ thật. Sai thì đăng nhập hỏng và mọi thao tác ghi bị từ chối.
 
-## Chạy trên Cloudflare thay cho VPS
+## Chuyển từ Cloudflare sang
 
-Code vẫn chạy được trên Cloudflare Workers + D1 (đây cũng là môi trường dùng khi dev và chạy test): tạo database bằng `npx wrangler d1 create badminton-pay`, điền `database_id` vào `wrangler.jsonc`, chạy `npm run db:migrate:remote`, đặt bốn biến trên bằng `npx wrangler secret put <TÊN>`, rồi `npm run deploy`.
+Đang chạy trên Cloudflare và muốn mang dữ liệu về VPS: làm theo mục "Chuyển về VPS sau này" trong [deployment-guide-cloudflare.md](deployment-guide-cloudflare.md).
