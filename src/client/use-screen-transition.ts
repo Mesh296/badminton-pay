@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { cssTimeMs } from "./css-vars";
 import { applyPendingScrollReset } from "./use-hash-route";
 
 /** How a screen change relates the two screens; picks the CSS motion. */
@@ -15,7 +16,7 @@ function kindOf(from: string[], to: string[]): NavKind {
 /** Exit duration from the CSS token, so the timing lives in one place (tokens.css). */
 function exitMs(): number {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return 0;
-  return parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--exit")) || 0;
+  return cssTimeMs("--exit");
 }
 
 /**

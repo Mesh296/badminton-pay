@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type PointerEvent } from "react";
-import { cssVars } from "./css-vars";
+import { cssTimeMs, cssVars } from "./css-vars";
 import { Icon, type IconName } from "./icons";
 import { navigate } from "./use-hash-route";
 
@@ -24,7 +24,7 @@ const SETTLE_AT = 0.85;
 
 /** Delay before settling, from the glide duration in tokens.css. */
 function settleDelayMs(): number {
-  return (parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--glide")) || 0) * SETTLE_AT;
+  return cssTimeMs("--glide") * SETTLE_AT;
 }
 
 /** A pointer that is down on the bar. `x` is null until it has moved enough to count as a drag. */

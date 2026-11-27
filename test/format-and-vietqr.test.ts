@@ -1,6 +1,18 @@
 import { describe, expect, it } from "vitest";
+import { parseCssTimeMs } from "../src/client/css-time";
 import { formatMoney, formatMoneyInput, formatMonth, parseMoney } from "../src/client/format";
 import { stripDiacritics, transferMemo, vietQrUrl } from "../src/shared/vietqr";
+
+describe("CSS timing tokens", () => {
+  it("reads both units, since the production build rewrites 420ms as .42s", () => {
+    expect(parseCssTimeMs("420ms")).toBe(420);
+    expect(parseCssTimeMs(" .42s")).toBe(420);
+    expect(parseCssTimeMs("0.17s")).toBeCloseTo(170);
+    expect(parseCssTimeMs("170ms ")).toBe(170);
+    expect(parseCssTimeMs("")).toBe(0);
+    expect(parseCssTimeMs("auto")).toBe(0);
+  });
+});
 
 describe("money formatting", () => {
   it("formats and parses VND", () => {
