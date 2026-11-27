@@ -16,6 +16,7 @@ import { useAppState } from "./use-app-state";
 import { goBack, useHashRoute } from "./use-hash-route";
 import { useScreenTransition } from "./use-screen-transition";
 import { useUnseenActivity } from "./use-unseen-activity";
+import { resyncPush } from "./push-notifications";
 import { useWrite } from "./use-write";
 
 const TABS: Tab[] = [
@@ -71,6 +72,12 @@ export default function App() {
   }, [notice]);
 
   const write = useWrite(reload, setNotice);
+
+  // A member's phone with notifications on re-registers once per opening.
+  const memberId = state?.me?.memberId ?? null;
+  useEffect(() => {
+    if (memberId !== null) void resyncPush();
+  }, [memberId]);
 
   const context = useMemo<AppContextValue | null>(() => {
     if (!state) return null;

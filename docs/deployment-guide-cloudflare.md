@@ -40,7 +40,7 @@ npx wrangler secret put ADMIN_EMAILS       # email Google của quản trị; nh
 node scripts/generate-vapid-key.mjs | npx wrangler secret put VAPID_KEY
 ```
 
-   Đổi khóa này thì mọi máy phải bật lại thông báo.
+   Đổi khóa này thì mọi máy phải bật lại thông báo. Lời nhắc nợ 19:00 chạy bằng cron trigger trong `wrangler.jsonc` (`0 12 * * *`, giờ UTC); `npm run deploy` tự đăng ký.
 
 5. Mở app → tab **Cài đặt** → **Đăng nhập Google** bằng email quản trị, điền tên của bạn rồi bấm **Vào nhóm** (quản trị vào thẳng, không cần duyệt).
 

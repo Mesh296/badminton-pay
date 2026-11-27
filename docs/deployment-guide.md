@@ -66,7 +66,7 @@ nano .env
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Lấy ở bước 4 |
 | `SESSION_SECRET` | Kết quả của `openssl rand -base64 32` |
 | `ADMIN_EMAILS` | Email Google của quản trị; nhiều người thì cách nhau dấu phẩy |
-| `VAPID_KEY` | Không bắt buộc, để bật thông báo lên điện thoại: một dòng JSON từ `node scripts/generate-vapid-key.mjs` |
+| `VAPID_KEY` | Không bắt buộc, để bật thông báo lên điện thoại: một dòng JSON từ `node scripts/generate-vapid-key.mjs`. Server tự gửi lời nhắc nợ lúc 19:00 giờ Việt Nam mỗi ngày |
 
 ```bash
 docker compose up -d --build

@@ -1,6 +1,7 @@
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { Hono } from "hono";
+import { nextReminderAt, sendDailyReminders } from "../worker/daily-reminder";
 import api from "../worker/index";
 import { openDatabase } from "./sqlite-d1-adapter";
 
@@ -47,6 +48,22 @@ server.use("*", serveStatic({ root: staticDir }));
 server.get("*", serveStatic({ root: staticDir, path: "index.html" }));
 
 serve({ fetch: server.fetch, port }, () => console.log(`badminton-pay listening on :${port} as ${publicUrl}`));
+
+// The evening reminder, as the Workers cron trigger does it: 19:00 in Vietnam
+// every day. Each run schedules the next from its own time slot (see nextReminderAt).
+function scheduleReminders(after: number) {
+  const at = nextReminderAt(after);
+  setTimeout(
+    () => {
+      void sendDailyReminders(env)
+        .then((n) => console.log(`reminded ${n}`))
+        .catch((error: unknown) => console.error("reminders failed", error));
+      scheduleReminders(at);
+    },
+    Math.max(0, at - Date.now()),
+  );
+}
+scheduleReminders(Date.now());
 
 // Node runs as PID 1 in the container and would otherwise ignore these.
 for (const signal of ["SIGTERM", "SIGINT"] as const) process.on(signal, () => process.exit(0));

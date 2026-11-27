@@ -1,6 +1,7 @@
 import { env } from "cloudflare:workers";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fromBase64Url, toBase64Url } from "../src/shared/base64url";
+import { nextReminderAt, reminderMessage, sendDailyReminders } from "../src/worker/daily-reminder";
 import { call, clearTables } from "./support/api-client";
 
 // Phones that ring when someone reports paying their member.
@@ -163,5 +164,76 @@ describe("ringing the receiver", () => {
     expect((await call("POST", "/api/claims", { date: "2026-11-27", fromId: payer, toId: receiver, amount: 1000 }, PAYER)).status).toBe(201);
     await new Promise((resolve) => setTimeout(resolve, 50));
     expect(sent).not.toHaveBeenCalled();
+  });
+});
+
+describe("the evening reminder", () => {
+  it("names whom someone owes, one person or several", () => {
+    expect(reminderMessage([{ name: "Minh", amount: 45_000 }])).toEqual({
+      title: "Còn nợ Minh 45.000đ",
+      body: "Chuyển xong thì vào app bấm Đã chuyển để Minh xác nhận.",
+      url: "/",
+      tag: "reminder",
+    });
+    expect(reminderMessage([{ name: "Minh", amount: 98_000 }, { name: "Hân", amount: 49_000 }])).toMatchObject({
+      title: "Còn nợ 147.000đ tiền cầu lông",
+      body: "Minh 98.000đ, Hân 49.000đ. Chuyển xong thì vào app bấm Đã chuyển.",
+    });
+  });
+
+  it("rings whoever owes, with notifications on, and nobody who is owed", async () => {
+    const payerDevice = await device(`${ENDPOINT}-payer`);
+    await call("POST", "/api/push", payerDevice.json, PAYER);
+    await call("POST", "/api/push", (await device(`${ENDPOINT}-receiver`)).json, RECEIVER);
+    const sent = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(null, { status: 201 }));
+
+    expect(await sendDailyReminders(env)).toBe(1);
+    expect(sent).toHaveBeenCalledTimes(1);
+    const [url, init] = sent.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe(`${ENDPOINT}-payer`);
+    // The nurse played alone in Minh's 90.000đ session.
+    expect(await decrypt(init.body as Uint8Array, payerDevice)).toMatchObject({ title: "Còn nợ Minh 90.000đ" });
+  });
+
+  it("does not remind about a payment already reported and waiting", async () => {
+    await call("POST", "/api/push", (await device()).json, PAYER);
+    await call("POST", "/api/claims", { date: "2026-11-27", fromId: payer, toId: receiver, amount: 90_000 }, PAYER);
+    const sent = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(null, { status: 201 }));
+    expect(await sendDailyReminders(env)).toBe(0);
+    expect(sent.mock.calls.filter(([u]) => String(u).startsWith(ENDPOINT))).toHaveLength(0);
+  });
+});
+
+describe("when the evening reminder runs", () => {
+  const at = (iso: string) => Date.parse(iso);
+  it("is 19:00 in Vietnam (12:00 UTC), today if still ahead, else tomorrow", () => {
+    expect(nextReminderAt(at("2026-11-27T05:00:00Z"))).toBe(at("2026-11-27T12:00:00Z"));
+    expect(nextReminderAt(at("2026-11-27T12:00:00Z"))).toBe(at("2026-11-28T12:00:00Z"));
+    expect(nextReminderAt(at("2026-11-27T23:59:00Z"))).toBe(at("2026-11-28T12:00:00Z"));
+  });
+
+  it("counts from the slot that just ran, so a timer firing early never sends twice", () => {
+    const slot = at("2026-11-27T12:00:00Z");
+    expect(nextReminderAt(slot)).toBe(slot + 24 * 60 * 60 * 1000);
+  });
+});
+
+describe("devices registered before the app address was kept", () => {
+  it("are skipped until a device registers again, which fills the address in for all", async () => {
+    const d = await device(`${ENDPOINT}-payer`);
+    await call("POST", "/api/push", d.json, PAYER);
+    await env.DB.prepare("UPDATE push_subscriptions SET origin = NULL").run();
+    const sent = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(null, { status: 201 }));
+    expect(await sendDailyReminders(env)).toBe(0);
+
+    await call("POST", "/api/push", (await device(`${ENDPOINT}-receiver`)).json, RECEIVER);
+    expect(await sendDailyReminders(env)).toBe(1);
+    expect(sent.mock.calls.map(([u]) => String(u))).toEqual([`${ENDPOINT}-payer`]);
+  });
+
+  it("counts only members a reminder reached", async () => {
+    await call("POST", "/api/push", (await device()).json, PAYER);
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(null, { status: 500 }));
+    expect(await sendDailyReminders(env)).toBe(0);
   });
 });

@@ -24,6 +24,17 @@ export async function readStatus(): Promise<PushStatus> {
   return Notification.permission === "granted" && (await currentSubscription()) ? "on" : "off";
 }
 
+/**
+ * Tells the server again about this device's subscription, if it has one: it
+ * then rings for whoever is signed in now, and the server learns the app's
+ * address for the evening reminder. Quiet; run when a member opens the app.
+ */
+export async function resyncPush(): Promise<void> {
+  if (!supported() || Notification.permission !== "granted") return;
+  const subscription = await currentSubscription().catch(() => null);
+  if (subscription) await sendWrite("POST", "/api/push", subscription.toJSON()).catch(() => undefined);
+}
+
 /** Stops this device ringing for whoever is signed in. Also run before signing out. */
 export async function turnOffPush(): Promise<void> {
   const subscription = await currentSubscription().catch(() => null);

@@ -93,8 +93,18 @@ export async function vapidAuthorization(endpoint: string, jwk: JsonWebKey, subj
   return `vapid t=${unsigned}.${toBase64Url(new Uint8Array(signature))}, k=${vapidPublicKey(jwk)}`;
 }
 
-/** Sends one message to one device. Returns the push service's HTTP status (404/410: the device is gone). */
-export async function sendPush(target: PushTarget, message: object, jwk: JsonWebKey, subject: string): Promise<number> {
+/**
+ * Sends one message to one device. Returns the push service's HTTP status
+ * (404/410: the device is gone). `ttlSeconds`: how long the push service keeps
+ * it for a phone that is offline.
+ */
+export async function sendPush(
+  target: PushTarget,
+  message: object,
+  jwk: JsonWebKey,
+  subject: string,
+  ttlSeconds = 86_400,
+): Promise<number> {
   const body = await encryptForDevice(text.encode(JSON.stringify(message)), target);
   const res = await fetch(target.endpoint, {
     method: "POST",
@@ -102,8 +112,8 @@ export async function sendPush(target: PushTarget, message: object, jwk: JsonWeb
       Authorization: await vapidAuthorization(target.endpoint, jwk, subject),
       "Content-Encoding": "aes128gcm",
       "Content-Type": "application/octet-stream",
-      // Kept a day if the phone is offline; sent at once rather than batched.
-      TTL: "86400",
+      // Sent at once rather than batched.
+      TTL: String(ttlSeconds),
       Urgency: "high",
     },
     body,

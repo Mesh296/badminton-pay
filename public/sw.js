@@ -18,6 +18,9 @@ self.addEventListener("push", (event) => {
         body: message.body || "",
         icon: "/icon-192.png",
         data: { url: message.url || "/" },
+        // Today's reminder replaces yesterday's instead of stacking, and still rings.
+        tag: message.tag,
+        renotify: Boolean(message.tag),
       }),
       // An app already open on screen reloads its numbers, so nobody acts on a stale page.
       self.clients.matchAll({ type: "window" }).then((windows) => windows.forEach((w) => w.postMessage("refresh"))),

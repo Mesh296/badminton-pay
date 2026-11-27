@@ -25,5 +25,9 @@
 	"observability": {
 		"enabled": true
 	},
+	// The evening debt reminder (src/worker/daily-reminder.ts): 12:00 UTC is 19:00 in Vietnam.
+	"triggers": {
+		"crons": ["0 12 * * *"]
+	},
 	"upload_source_maps": true
 }

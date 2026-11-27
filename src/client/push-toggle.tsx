@@ -4,9 +4,10 @@ import { Icon } from "./icons";
 import { readStatus, turnOffPush, turnOn, type PushStatus } from "./push-notifications";
 
 /**
- * "Thông báo" with its switch: rings this phone when someone reports paying
- * the signed-in member. A settings row by default; with `offerOnly` (home
- * screen, for whoever is owed) only while it could be turned on and is not.
+ * "Thông báo" with its switch, for everything the app sends this phone: a
+ * payment someone reports to the signed-in member, and the 19:00 reminder
+ * while they owe. A settings row by default; with `offerOnly` (home screen)
+ * only while it could be turned on and is not.
  */
 export function PushToggle({ offerOnly = false }: { offerOnly?: boolean }) {
   const labelId = useId();
@@ -61,9 +62,10 @@ export function PushToggle({ offerOnly = false }: { offerOnly?: boolean }) {
       )}
       <span className="row-main">
         <span id={labelId} className="row-title">
-          {offerOnly ? "Báo khi có người chuyển tiền" : "Bật thông báo"}
+          Bật thông báo
         </span>
-        <span className="row-sub">{note ?? (offerOnly ? "Điện thoại sẽ đổ chuông" : "Báo khi có người chuyển tiền cho bạn")}</span>
+        {/* One switch for everything the app sends */}
+        <span className="row-sub">{note ?? "Khi có người chuyển tiền cho bạn, và nhắc lúc 19h nếu bạn còn nợ"}</span>
       </span>
       <GlassSwitch
         checked={wanted ?? status === "on"}

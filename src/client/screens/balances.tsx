@@ -40,6 +40,7 @@ function MyStatus({ memberId, totalDebt, next }: { memberId: number; totalDebt: 
         ) : (
           group
         )}
+        <PushToggle offerOnly />
       </section>
     );
   }

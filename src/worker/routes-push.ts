@@ -13,7 +13,7 @@ export const pushRoutes = new Hono<AppEnv>();
 /** Most devices kept per member; the oldest goes when one more signs up. */
 const DEVICES_PER_MEMBER = 5;
 
-function vapidKey(env: Env): JsonWebKey | null {
+export function vapidKey(env: Env): JsonWebKey | null {
   try {
     return env.VAPID_KEY ? (JSON.parse(env.VAPID_KEY) as JsonWebKey) : null;
   } catch {
@@ -66,10 +66,13 @@ pushRoutes.post("/", async (c) => {
   await db.batch([
     db
       .prepare(
-        `INSERT INTO push_subscriptions (endpoint, member_id, p256dh, auth) VALUES (?, ?, ?, ?)
-         ON CONFLICT(endpoint) DO UPDATE SET member_id = excluded.member_id, p256dh = excluded.p256dh, auth = excluded.auth`,
+        `INSERT INTO push_subscriptions (endpoint, member_id, p256dh, auth, origin) VALUES (?, ?, ?, ?, ?)
+         ON CONFLICT(endpoint) DO UPDATE SET member_id = excluded.member_id, p256dh = excluded.p256dh,
+           auth = excluded.auth, origin = excluded.origin`,
       )
-      .bind(body.endpoint, memberId, body.keys.p256dh, body.keys.auth),
+      .bind(body.endpoint, memberId, body.keys.p256dh, body.keys.auth, new URL(c.req.url).origin),
+    // Devices registered before the address was kept get it too: it is the same app.
+    db.prepare("UPDATE push_subscriptions SET origin = ? WHERE origin IS NULL").bind(new URL(c.req.url).origin),
     db
       .prepare(
         `DELETE FROM push_subscriptions WHERE member_id = ? AND rowid NOT IN
@@ -91,34 +94,59 @@ pushRoutes.delete("/", async (c) => {
   return c.body(null, 204);
 });
 
+export interface PushMessage {
+  title: string;
+  body: string;
+  url: string;
+  /** Replaces an earlier notification with the same tag on the phone instead of piling up */
+  tag?: string;
+}
+
+/**
+ * Sends one message to every device of one member. `subject` is the app's own
+ * address, which tells the push service who is sending. Devices the push
+ * service says are gone are forgotten; other failures are logged.
+ */
+export async function pushToMember(
+  db: D1Database,
+  jwk: JsonWebKey,
+  memberId: number,
+  message: PushMessage,
+  subject: string,
+  ttlSeconds?: number,
+): Promise<number> {
+  const devices = await db
+    .prepare("SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE member_id = ?")
+    .bind(memberId)
+    .all<PushTarget>();
+  let delivered = 0;
+  for (const device of devices.results) {
+    const status = await sendPush(device, message, jwk, subject, ttlSeconds).catch((error: unknown) => {
+      console.error("push failed", error);
+      return 0;
+    });
+    // Gone for good: the app was removed or notifications turned off.
+    if (status === 404 || status === 410) {
+      await db.prepare("DELETE FROM push_subscriptions WHERE endpoint = ?").bind(device.endpoint).run();
+    } else if (status >= 400) {
+      console.error("push refused", status, new URL(device.endpoint).hostname);
+    } else if (status > 0) {
+      delivered++;
+    }
+  }
+  return delivered;
+}
+
 /**
  * Rings every device of one member. Runs after the response is sent; a
  * failure is logged and never undoes the write that caused it.
  */
-export function notifyMember(c: Context<AppEnv>, memberId: number, message: { title: string; body: string; url: string }) {
+export function notifyMember(c: Context<AppEnv>, memberId: number, message: PushMessage) {
   const jwk = vapidKey(c.env);
   if (!jwk) return;
-  const db = c.env.DB;
-  // The app's own address identifies the sender to the push service.
-  const subject = new URL(c.req.url).origin;
-  const work = (async () => {
-    const devices = await db
-      .prepare("SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE member_id = ?")
-      .bind(memberId)
-      .all<PushTarget>();
-    for (const device of devices.results) {
-      const status = await sendPush(device, message, jwk, subject).catch((error: unknown) => {
-        console.error("push failed", error);
-        return 0;
-      });
-      // Gone for good: the app was removed or notifications turned off.
-      if (status === 404 || status === 410) {
-        await db.prepare("DELETE FROM push_subscriptions WHERE endpoint = ?").bind(device.endpoint).run();
-      } else if (status >= 400) {
-        console.error("push refused", status, new URL(device.endpoint).hostname);
-      }
-    }
-  })().catch((error: unknown) => console.error("push failed", error));
+  const work = pushToMember(c.env.DB, jwk, memberId, message, new URL(c.req.url).origin).catch((error: unknown) =>
+    console.error("push failed", error),
+  );
   try {
     c.executionCtx.waitUntil(work);
   } catch {

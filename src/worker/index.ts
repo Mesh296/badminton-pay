@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import type { Me } from "../shared/types";
 import { resolveActor } from "./auth-session";
+import { sendDailyReminders } from "./daily-reminder";
 import { loadState } from "./load-state";
 import { authRoutes } from "./routes-auth";
 import { avatarRoutes } from "./routes-avatars";
@@ -59,4 +60,14 @@ app.onError((err, c) => {
   return c.json({ error: "Lỗi máy chủ" }, 500);
 });
 
-export default app;
+// The API, plus the evening reminder on the cron trigger in wrangler.jsonc.
+export default {
+  fetch: app.fetch,
+  scheduled(_event, env, ctx) {
+    ctx.waitUntil(
+      sendDailyReminders(env)
+        .then((n) => console.log(`reminded ${n}`))
+        .catch((error: unknown) => console.error("reminders failed", error)),
+    );
+  },
+} satisfies ExportedHandler<Env>;
