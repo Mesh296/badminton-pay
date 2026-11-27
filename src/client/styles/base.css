@@ -48,8 +48,8 @@ a, button, select, label.check { cursor: pointer; touch-action: manipulation; }
    opposite corners (::after) for the curved-glass look. */
 .tabbar-glass, .fab, .round-button {
   overflow: hidden;
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%) var(--bar-legible);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%) var(--bar-legible);
   box-shadow: var(--glass-rim), var(--glass-shadow);
 }
 .tabbar-glass::after, .fab::after, .round-button::after {
@@ -102,7 +102,7 @@ main {
 }
 /* The bar's glass body. Kept as its own layer instead of on .tabbar, because a
    backdrop-filter on the parent would stop the lens from seeing the page. */
-.tabbar-glass { position: absolute; inset: 0; border-radius: inherit; background: var(--glass-fill); }
+.tabbar-glass { position: absolute; inset: 0; border-radius: inherit; background: var(--bar-fill); }
 .tabbar .tab {
   position: relative;
   z-index: 1;
@@ -112,7 +112,7 @@ main {
   gap: 3px;
   min-height: calc(var(--tabbar) - 12px);
   border-radius: 26px;
-  color: var(--muted);
+  color: var(--bar-muted);
   font-size: var(--text-nav);
   font-weight: 600;
   line-height: 1.2;
@@ -120,7 +120,7 @@ main {
   /* soft halo in the canvas color keeps labels readable over whatever scrolls behind the glass */
   text-shadow: 0 0 8px var(--bg), 0 0 2px var(--bg);
 }
-.tabbar .tab[aria-current="page"] { color: var(--text); }
+.tabbar .tab[aria-current="page"] { color: var(--accent); }
 /* The tab under a lifted lens is magnified, as if seen through it */
 .tabbar .tab[data-lens] { color: var(--text); transform: scale(1.18); }
 @media (hover: hover) {
@@ -225,7 +225,7 @@ main {
 /* In WebKit the glass needs no backdrop filter: the bent copy under it is what
    shows through, and one less filtered layer is redrawn per frame. */
 :root[data-bend] .tab-indicator::after { -webkit-backdrop-filter: none; backdrop-filter: none; }
-:root[data-refract] .fab { backdrop-filter: url(#glass-refract) blur(var(--fab-blur)) saturate(160%); }
+:root[data-refract] .fab { backdrop-filter: url(#glass-refract) blur(var(--fab-blur)) saturate(160%) var(--bar-legible); }
 
 /* Round clear-glass add button, centered just above the tab bar */
 .fab {
@@ -240,10 +240,10 @@ main {
   margin-left: calc(var(--fab) / -2);
   border-radius: var(--radius-pill);
   background: var(--fab-fill);
-  -webkit-backdrop-filter: blur(var(--fab-blur)) saturate(160%);
-  backdrop-filter: blur(var(--fab-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--fab-blur)) saturate(160%) var(--bar-legible);
+  backdrop-filter: blur(var(--fab-blur)) saturate(160%) var(--bar-legible);
   box-shadow: var(--fab-rim), var(--fab-shadow);
-  color: var(--text);
+  color: var(--accent);
 }
 .fab .icon { width: 26px; height: 26px; stroke-width: 2.25; }
 .fab::after { background: linear-gradient(45deg, var(--fab-sheen) 0%, transparent 28%, transparent 72%, var(--fab-sheen) 100%); }

@@ -1,5 +1,7 @@
 /* Design tokens. Monochrome theme: soft gray canvas, white cards, black type
-   and black primary buttons, one muted violet for "on" states. The dark theme
+   and black primary buttons, with the app icon's violet as the one accent: the
+   current tab, the add button, people's avatars, the summary card, links, and
+   "on" states. The dark theme
    (follows the system setting) inverts it: near-black canvas, white buttons.
    Components use the semantic names below; raw colors live only here. */
 
@@ -14,7 +16,7 @@
   --faint: #a8a8a8;
   --hairline: #e6e6e6;
   --chip: #ebebeb;
-  --violet: #6366c8;
+  --violet: #5e4ed0; /* the icon's violet, deep enough for small text on white (6:1) */
   --red: #c0392b;
 
   /* Semantic roles */
@@ -28,7 +30,8 @@
   --active: var(--chip); /* active tab pill, avatar disc, segmented track */
   --primary: var(--ink); /* primary buttons and selected chips */
   --on-primary: var(--white);
-  --accent: var(--violet); /* "on" toggles and positive balances */
+  --accent: var(--violet); /* "on" toggles, positive balances, the current tab, links */
+  --accent-soft: rgb(94 78 208 / 0.12); /* violet wash: avatars, the summary card, the current tab's pill */
   --on-accent: var(--white);
   --danger: var(--red); /* errors and destructive actions only */
   --disabled: #d9d9d9;
@@ -40,12 +43,18 @@
   --glass-blur: 3px; /* very light, so what scrolls behind stays clearly visible */
   --glass-shadow: 0 18px 40px rgb(0 0 0 / 0.14), 0 4px 10px rgb(0 0 0 / 0.08);
   --glass-fill: rgb(255 255 255 / 0.12);
+  /* Floating glass over content (tab bar, add and back buttons): what scrolls behind is
+     squeezed into a light band, so dark content (a black button, a photo) still
+     shows through as soft shapes but never sits under the labels at full depth. */
+  --bar-fill: rgb(255 255 255 / 0.35);
+  --bar-legible: contrast(0.25) brightness(1.75);
+  --bar-muted: #4d4d4d;
   --glass-rim: 
     inset 0 0 0 1px rgb(255 255 255 / 0.7), inset 0 2px 1px -1px rgb(255 255 255 / 1),
     inset 0 8px 10px -8px rgb(255 255 255 / 0.9), inset 0 -2px 1px -1px rgb(255 255 255 / 0.6),
     inset 0 -9px 12px -9px rgb(0 0 0 / 0.14), inset 0 0 10px rgb(0 0 0 / 0.07);
   --glass-sheen: rgb(255 255 255 / 0.35);
-  --glass-active: rgb(0 0 0 / 0.07); /* flat pill behind the current tab, at rest */
+  --glass-active: var(--accent-soft); /* flat pill behind the current tab, at rest */
   /* Lens: the glass bubble the selection lifts into while it moves. Bright rim,
      a hint of red/blue fringe at its sides, soft drop shadow. */
   --lens-fill: radial-gradient(130% 130% at 30% 12%, rgb(255 255 255 / 0.3), rgb(255 255 255 / 0.02) 50%, rgb(255 255 255 / 0.14) 100%);
@@ -143,7 +152,8 @@
     --faint: #6e6e6e;
     --hairline: #2e2e30;
     --chip: #2a2a2c;
-    --violet: #a5a7f2;
+    --violet: #a99cf6;
+    --accent-soft: rgb(169 156 246 / 0.16);
     --red: #ff8a80;
 
     --fill: var(--chip); /* fields need to stand off the dark card */
@@ -153,12 +163,15 @@
 
     --glass-shadow: 0 18px 40px rgb(0 0 0 / 0.6), 0 4px 10px rgb(0 0 0 / 0.45);
     --glass-fill: rgb(150 150 160 / 0.1);
+    /* ...and into a dark band in dark mode, under light labels */
+    --bar-fill: rgb(28 28 30 / 0.35);
+    --bar-legible: contrast(0.25) brightness(0.32);
+    --bar-muted: var(--gray);
     --glass-rim: 
       inset 0 0 0 1px rgb(255 255 255 / 0.16), inset 0 2px 1px -1px rgb(255 255 255 / 0.5),
       inset 0 8px 10px -8px rgb(255 255 255 / 0.22), inset 0 -2px 1px -1px rgb(255 255 255 / 0.18),
       inset 0 -9px 12px -9px rgb(0 0 0 / 0.5), inset 0 0 10px rgb(0 0 0 / 0.4);
     --glass-sheen: rgb(255 255 255 / 0.08);
-    --glass-active: rgb(255 255 255 / 0.13);
     --lens-fill: radial-gradient(130% 130% at 30% 12%, rgb(255 255 255 / 0.14), rgb(255 255 255 / 0.01) 50%, rgb(255 255 255 / 0.06) 100%);
     --lens-rim: 
       inset 0 0 0 1px rgb(255 255 255 / 0.32), inset 0 2px 1px -1px rgb(255 255 255 / 0.75),
@@ -181,6 +194,7 @@
 @media (prefers-reduced-transparency: reduce) {
   :root {
     --glass-fill: var(--surface);
+    --bar-fill: var(--surface);
     --fab-fill: var(--surface);
     --canvas-veil: var(--bg);
     --blur: 0px;
@@ -189,6 +203,7 @@
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   :root {
     --glass-fill: var(--surface);
+    --bar-fill: var(--surface);
     --fab-fill: var(--surface);
     --canvas-veil: var(--bg);
   }

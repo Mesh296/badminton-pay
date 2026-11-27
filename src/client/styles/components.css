@@ -16,7 +16,7 @@
 .balance.zero { color: var(--muted); font-weight: 400; }
 .balance.large { font-size: var(--text-title); }
 
-/* Avatar: gray disc with the member's initial */
+/* Avatar: violet-washed disc with the member's initial */
 .avatar {
   flex: none;
   display: grid;
@@ -24,8 +24,8 @@
   width: 42px;
   height: 42px;
   border-radius: var(--radius-pill);
-  background: var(--active);
-  color: var(--text);
+  background: var(--accent-soft);
+  color: var(--accent);
   font-weight: 700;
   letter-spacing: 0;
 }
@@ -59,6 +59,8 @@
 .row-buttons { display: flex; gap: var(--sp-12); }
 .row-buttons > * { flex: 1; }
 .link, .link-text { color: var(--muted); font-size: var(--text-small); font-weight: 600; }
+/* Links that lead somewhere ("Sửa", "2 người chờ duyệt"); action links such as "Từ chối" stay gray */
+.link-text, a.hint { color: var(--accent); }
 .link { min-width: 44px; min-height: 44px; padding: 0 var(--sp-4); border: 0; background: none; }
 
 /* Lists: rows separated by inset hairlines */
@@ -90,11 +92,18 @@
 .card, .hero { display: grid; gap: var(--sp-16); padding: var(--sp-24); }
 .card h3 { font-size: var(--text-body); font-weight: 500; letter-spacing: -0.01em; }
 .card h3 strong { font-weight: 700; }
-.hero { justify-items: center; gap: var(--sp-8); padding: var(--sp-32) var(--sp-24); text-align: center; }
+/* The summary card at the top of a screen, with a light violet wash */
+.hero {
+  justify-items: center;
+  gap: var(--sp-8);
+  padding: var(--sp-32) var(--sp-24);
+  background-image: linear-gradient(var(--accent-soft) 0 0);
+  text-align: center;
+}
 .hero h2 { font-size: var(--text-heading); line-height: 1.2; }
 .hero-amount { font-size: var(--text-display); font-weight: 700; line-height: 1.1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
 .hero .button { margin-top: var(--sp-16); }
-.hero .avatar { margin-bottom: var(--sp-8); }
+.hero .avatar { margin-bottom: var(--sp-8); background: var(--surface); }
 /* White QR tile with a hairline ring, so it reads as an object on the white card */
 .qr { justify-self: center; max-width: 100%; height: auto; padding: var(--sp-8); border-radius: 20px; background: var(--qr-tile); box-shadow: 0 0 0 1px var(--line); }
 .account { color: var(--muted); font-size: var(--text-small); text-align: center; overflow-wrap: anywhere; }
