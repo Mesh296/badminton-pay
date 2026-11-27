@@ -60,7 +60,7 @@
 .row-buttons > * { flex: 1; }
 .link, .link-text { color: var(--muted); font-size: var(--text-small); font-weight: 600; }
 /* Links that lead somewhere ("Sửa", "2 người chờ duyệt"); action links such as "Từ chối" stay gray */
-.link-text, a.hint { color: var(--accent); }
+.link-text, a.hint, .accent-text { color: var(--accent); }
 .link { min-width: 44px; min-height: 44px; padding: 0 var(--sp-4); border: 0; background: none; }
 
 /* Lists: rows separated by inset hairlines */
@@ -196,7 +196,7 @@ fieldset:disabled .toggle[aria-pressed="true"] { opacity: 1; }
 .segmented {
   position: relative;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(var(--seg-count, 2), 1fr);
   padding: var(--sp-4);
   border-radius: var(--radius-pill);
   background: var(--surface);
@@ -207,7 +207,7 @@ fieldset:disabled .toggle[aria-pressed="true"] { opacity: 1; }
   top: var(--sp-4);
   bottom: var(--sp-4);
   left: var(--sp-4);
-  width: calc((100% - 8px) / 2);
+  width: calc((100% - 8px) / var(--seg-count, 2));
   border-radius: var(--radius-pill);
   background: var(--primary);
   transform: translateX(calc(var(--seg-index, 0) * 100%));

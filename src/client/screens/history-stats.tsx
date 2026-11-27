@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ActivityFeed } from "./activity-feed";
 import type { Session, Transfer } from "../../shared/types";
 import { useApp } from "../app-context";
 import { byName, formatDate, formatDayMonth, formatMoney, formatMonth } from "../format";
@@ -7,20 +8,27 @@ import { cssVars } from "../css-vars";
 
 type Entry = { date: string; session: Session } | { date: string; transfer: Transfer };
 
-// Past sessions and transfers, plus simple totals per month and per member.
+const TABS = [
+  { key: "history", label: "Lịch sử" },
+  { key: "stats", label: "Thống kê" },
+  { key: "log", label: "Nhật ký" },
+] as const;
+
+// Past sessions and transfers, simple totals per month and per member, and
+// the log of who changed what.
 export function HistoryStats() {
-  const [tab, setTab] = useState<"history" | "stats">("history");
+  const [tab, setTab] = useState<(typeof TABS)[number]["key"]>("history");
+  const index = TABS.findIndex((t) => t.key === tab);
   return (
     <>
-      <div className="segmented" role="tablist" style={cssVars({ "--seg-index": tab === "history" ? 0 : 1 })}>
-        <button type="button" role="tab" aria-selected={tab === "history"} onClick={() => setTab("history")}>
-          Lịch sử
-        </button>
-        <button type="button" role="tab" aria-selected={tab === "stats"} onClick={() => setTab("stats")}>
-          Thống kê
-        </button>
+      <div className="segmented" role="tablist" style={cssVars({ "--seg-index": index, "--seg-count": TABS.length })}>
+        {TABS.map((t) => (
+          <button key={t.key} type="button" role="tab" aria-selected={tab === t.key} onClick={() => setTab(t.key)}>
+            {t.label}
+          </button>
+        ))}
       </div>
-      {tab === "history" ? <History /> : <Stats />}
+      {tab === "history" ? <History /> : tab === "stats" ? <Stats /> : <ActivityFeed />}
     </>
   );
 }

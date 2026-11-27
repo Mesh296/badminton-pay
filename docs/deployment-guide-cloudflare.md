@@ -63,7 +63,7 @@ npm run test && npm run deploy
 
 Chạy từ máy bạn, không cần vào server nào. Dữ liệu và secret giữ nguyên.
 
-Chỉ khi bản mới có file mới trong `migrations/` thì chạy `npm run db:migrate:remote` trước khi deploy.
+`npm run deploy` tự áp các thay đổi database mới (thư mục `migrations/`) trước khi đưa code lên; nếu wrangler hỏi xác nhận thì đồng ý.
 
 Bản mới lỗi thì quay về bản trước: `npx wrangler rollback`.
 
@@ -96,7 +96,8 @@ Tại thời điểm viết (11/2026): Workers 100.000 request/ngày, D1 5 tri�
 - Ai có địa chỉ app đều xem được tên, số dư và số tài khoản ngân hàng của thành viên. Email của thành viên chỉ quản trị thấy.
 - Mã QR do `img.vietqr.io` tạo, nên số tài khoản và số tiền đi qua dịch vụ đó.
 - Phiên đăng nhập là cookie có chữ ký, sống 1 năm. Mất máy thì đổi `SESSION_SECRET` để đăng xuất mọi người.
-- App không lưu nhật ký ai sửa gì. Quyền đã bó hẹp: buổi do người ứng (hoặc quản trị) ghi, chuyển khoản do người nhận (hoặc quản trị) ghi.
+- Quyền đã bó hẹp: buổi do người ứng (hoặc quản trị) ghi, chuyển khoản do người nhận (hoặc quản trị) ghi.
+- Mỗi lần thêm, sửa, xóa buổi hay ghi, hủy chuyển khoản đều vào nhật ký (tab **Lịch sử** → **Nhật ký**): ai làm, lúc nào, trước và sau thế nào. Cả nhóm xem được, nên ghi buổi giả để trừ nợ hay hủy một khoản đã nhận đều lộ tên người làm. Buổi hoặc khoản bị xóa khôi phục được ngay từ nhật ký; app không có cách sửa hay xóa nhật ký.
 
 Ai làm được gì: xem bảng trong [deployment-guide.md](deployment-guide.md#ai-làm-được-gì).
 

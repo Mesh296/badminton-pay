@@ -1,5 +1,7 @@
 import { Hono, type Context } from "hono";
 import { splitSession } from "../shared/money";
+import type { Me, SessionSnapshot } from "../shared/types";
+import { logActivity, readStoredSession } from "./activity-log";
 import { membersExist, readBody } from "./http-helpers";
 import type { AppEnv } from "./index";
 import { sessionSchema, type SessionInput } from "./validation";
@@ -15,15 +17,31 @@ const ownsSession = (c: Context<AppEnv>, payerId: number) => {
 };
 const notOwner = (c: Context<AppEnv>) => c.json({ error: "Chỉ người ứng mới ghi được buổi này" }, 403);
 
-// Shares are always computed here; the client never supplies them.
-function attendeeInserts(db: D1Database, sessionId: string, input: SessionInput): D1PreparedStatement[] {
+// The session as it will be stored. Shares are always computed here; the
+// client never supplies them.
+function toSnapshot(id: string, input: SessionInput): SessionSnapshot {
   const shares = splitSession(input);
-  return input.attendees.map((attendee) =>
+  return {
+    id,
+    date: input.date,
+    payerId: input.payerId,
+    courtAmount: input.courtAmount,
+    drinkAmount: input.drinkAmount,
+    note: input.note,
+    attendees: input.attendees.map((a) => ({ memberId: a.memberId, drank: a.drank, share: shares.get(a.memberId)! })),
+  };
+}
+
+function attendeeInserts(db: D1Database, session: SessionSnapshot): D1PreparedStatement[] {
+  return session.attendees.map((attendee) =>
     db
       .prepare("INSERT INTO session_attendees (session_id, member_id, drank, share) VALUES (?, ?, ?, ?)")
-      .bind(sessionId, attendee.memberId, attendee.drank ? 1 : 0, shares.get(attendee.memberId)!),
+      .bind(session.id, attendee.memberId, attendee.drank ? 1 : 0, attendee.share),
   );
 }
+
+// Writes need a signed-in account (index.ts answers 401 otherwise).
+const actorOf = (c: Context<AppEnv>) => c.get("actor") as Me;
 
 // Validated session body, or the error Response to send back.
 async function readSession(c: Context<AppEnv>): Promise<SessionInput | Response> {
@@ -43,14 +61,16 @@ sessionRoutes.post("/", async (c) => {
 
   const db = c.env.DB;
   const id = crypto.randomUUID();
-  // One batch = one transaction: a session never exists without its attendees.
+  const session = toSnapshot(id, body);
+  // One batch = one transaction: a session never exists without its attendees or its log entry.
   await db.batch([
     db
       .prepare(
         "INSERT INTO sessions (id, date, payer_id, court_amount, drink_amount, note) VALUES (?, ?, ?, ?, ?, ?)",
       )
       .bind(id, body.date, body.payerId, body.courtAmount, body.drinkAmount, body.note),
-    ...attendeeInserts(db, id, body),
+    ...attendeeInserts(db, session),
+    logActivity(db, actorOf(c), "session.create", null, session),
   ]);
   return c.json({ id }, 201);
 });
@@ -58,15 +78,16 @@ sessionRoutes.post("/", async (c) => {
 sessionRoutes.put("/:id", async (c) => {
   const id = c.req.param("id");
   const db = c.env.DB;
-  const existing = await db.prepare("SELECT payer_id FROM sessions WHERE id = ?").bind(id).first<{ payer_id: number }>();
+  const existing = await readStoredSession(db, id);
   if (!existing) return c.json({ error: "Không tìm thấy buổi" }, 404);
-  if (!ownsSession(c, existing.payer_id)) return notOwner(c);
+  if (!ownsSession(c, existing.payerId)) return notOwner(c);
 
   const body = await readSession(c);
   if (body instanceof Response) return body;
   // The payer cannot be handed to someone else either.
   if (!ownsSession(c, body.payerId)) return notOwner(c);
 
+  const updated = toSnapshot(id, body);
   try {
     await db.batch([
       db
@@ -75,7 +96,8 @@ sessionRoutes.put("/:id", async (c) => {
         )
         .bind(body.date, body.payerId, body.courtAmount, body.drinkAmount, body.note, id),
       db.prepare("DELETE FROM session_attendees WHERE session_id = ?").bind(id),
-      ...attendeeInserts(db, id, body),
+      ...attendeeInserts(db, updated),
+      logActivity(db, actorOf(c), "session.update", existing, updated),
     ]);
   } catch (error) {
     // Someone deleted the session between the check above and this batch: the
@@ -89,10 +111,14 @@ sessionRoutes.put("/:id", async (c) => {
 
 sessionRoutes.delete("/:id", async (c) => {
   const id = c.req.param("id");
-  const existing = await c.env.DB.prepare("SELECT payer_id FROM sessions WHERE id = ?").bind(id).first<{ payer_id: number }>();
+  const db = c.env.DB;
+  const existing = await readStoredSession(db, id);
   if (!existing) return c.json({ error: "Không tìm thấy buổi" }, 404);
-  if (!ownsSession(c, existing.payer_id)) return notOwner(c);
-  // Attendee rows go with the session via ON DELETE CASCADE.
-  await c.env.DB.prepare("DELETE FROM sessions WHERE id = ?").bind(id).run();
+  if (!ownsSession(c, existing.payerId)) return notOwner(c);
+  // Attendee rows go with the session via ON DELETE CASCADE; the log keeps a copy.
+  await db.batch([
+    db.prepare("DELETE FROM sessions WHERE id = ?").bind(id),
+    logActivity(db, actorOf(c), "session.delete", existing, null),
+  ]);
   return c.body(null, 204);
 });
