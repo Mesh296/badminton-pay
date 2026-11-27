@@ -32,7 +32,7 @@ Deploy, đăng nhập Google, cập nhật, sao lưu:
   Ví dụ sân 400.000đ, 2 giờ: 3 người chơi 2 giờ, 2 người chơi 1 giờ, tổng 8 giờ, mỗi giờ 50.000đ: người 2 giờ trả 100.000đ, người 1 giờ trả 50.000đ.
 - Mỗi phần làm tròn lên 1.000đ. Người ứng tiền được ghi nhận tổng các phần đã chia, nên phần dư do làm tròn thuộc về người ứng.
 - Số dư mỗi người = tiền đã ứng − phần phải chia + tiền đã chuyển − tiền đã nhận. Tổng số dư cả nhóm luôn bằng 0.
-- App gợi ý ai chuyển cho ai, kèm mã QR và nút mở thẳng app ngân hàng trên iPhone (MB Bank, VietinBank, BIDV, ACB, OCB tự điền sẵn STK, số tiền, nội dung; app khác chỉ mở, STK được chép sẵn).
+- App gợi ý ai chuyển cho ai, kèm mã QR và nút mở thẳng app ngân hàng trên iPhone (MB Bank, VietinBank, BIDV, ACB, OCB tự điền sẵn STK, số tiền, nội dung; app khác chỉ mở, STK được chép sẵn). Chọn MoMo thì app gửi ảnh mã QR sang MoMo qua bảng chia sẻ của iPhone; MoMo đọc mã và điền sẵn người nhận.
 - App gợi ý ai chuyển cho ai. Người nợ chuyển xong bấm "Đã chuyển"; người nhận thấy thông báo ở đầu màn Số dư và bấm "Đã nhận" khi tiền về (hoặc "Chưa nhận"). Chỉ khi người nhận xác nhận thì số dư mới đổi. Người nhận bật "Báo lên điện thoại" (trang chủ hoặc tab Thành viên) thì điện thoại đổ chuông khi có người báo; trên iPhone cần thêm app ra màn hình chính, iOS 16.4 trở lên. Người nhận cũng tự bấm "Đã nhận" được khi chưa ai báo (vd. trả tiền mặt). Tiền về không khớp gợi ý nào (gợi ý đã đổi vì có buổi mới) thì người nhận bấm "Ghi tiền đã nhận" ở trang của mình, chọn người chuyển và số tiền.
 
 ## Ai làm được gì

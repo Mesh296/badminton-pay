@@ -6,6 +6,7 @@ import { useApp } from "../app-context";
 import { formatMoney } from "../format";
 import { Icon } from "../icons";
 import { QrCode } from "../qr-code";
+import { MomoPay } from "./momo-pay";
 import { SettleActions } from "./settle-actions";
 
 interface Props {
@@ -16,6 +17,8 @@ interface Props {
 
 /** The banking app this phone pays with, remembered between visits */
 const BANK_APP_KEY = "bank-app";
+/** MoMo in the same list: not a VietQR deeplink app, so it has its own button */
+const MOMO = "momo";
 
 // One suggested payment: who to pay, how much, the VietQR code, a button that
 // opens the payer's banking app on the transfer, and the buttons to settle it:
@@ -29,6 +32,7 @@ export function TransferCard({ from, to, amount }: Props) {
   const hasAccount = Boolean(to.bankCode && to.accountNo);
   const memo = transferMemo(from.name);
   const app = BANK_APPS.find((a) => a.id === appId);
+  const qrText = hasAccount ? vietQrPayload({ bankCode: to.bankCode!, accountNo: to.accountNo!, amount, memo }) : "";
   // The receiver has nothing to pay here.
   const showBankApp = Boolean(bank) && me?.memberId !== to.id;
 
@@ -55,7 +59,7 @@ export function TransferCard({ from, to, amount }: Props) {
       {hasAccount ? (
         <>
           <QrCode
-            text={vietQrPayload({ bankCode: to.bankCode!, accountNo: to.accountNo!, amount, memo })}
+            text={qrText}
             label={`Mã QR chuyển ${formatMoney(amount)} cho ${to.name}`}
           />
           <p className="account">
@@ -70,7 +74,7 @@ export function TransferCard({ from, to, amount }: Props) {
           {showBankApp && (
             <div className="bank-app">
               <label className="field">
-                <span>Mở app ngân hàng</span>
+                <span>Mở app để chuyển</span>
                 <select value={appId} onChange={(e) => chooseApp(e.target.value)}>
                   <option value="">Chọn app của bạn</option>
                   <optgroup label="Tự điền sẵn">
@@ -79,6 +83,9 @@ export function TransferCard({ from, to, amount }: Props) {
                         {a.name}
                       </option>
                     ))}
+                  </optgroup>
+                  <optgroup label="Ví điện tử">
+                    <option value={MOMO}>MoMo</option>
                   </optgroup>
                   <optgroup label="Chỉ mở app">
                     {BANK_APPS.filter((a) => !a.autofill).map((a) => (
@@ -89,6 +96,13 @@ export function TransferCard({ from, to, amount }: Props) {
                   </optgroup>
                 </select>
               </label>
+              {appId === MOMO && (
+                <MomoPay
+                  qrText={qrText}
+                  accountText={[bank!.name, to.accountNo, to.accountName].filter(Boolean).join(" ")}
+                  amount={amount}
+                />
+              )}
               {app && (
                 <>
                   <a
