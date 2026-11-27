@@ -1,8 +1,8 @@
 # Response headers for the static app on Cloudflare (Workers static assets).
 # - Referrer-Policy same-origin: links and images to other sites (VietQR, the
 #   bank-app page, Google sign-in) never learn this app's address, which is the
-#   only thing keeping its public data out of view. Not "no-referrer": that also
-#   blanks the Origin header on the app's own writes, which the API then refuses.
+#   only thing keeping its public data out of view. Requests within the app
+#   keep theirs.
 # - X-Frame-Options DENY: no other site can show the app in a frame.
 # - X-Content-Type-Options nosniff: files are only ever read as their stated type.
 /*
