@@ -84,11 +84,17 @@ export function SettleActions({ from, to, amount }: Props) {
   if (!open) {
     return (
       <>
-        {waiting && (
+        {waiting ? (
           <p className="hint">
             Bạn đã báo chuyển {formatMoney(waiting.amount)} cho {nameOf(waiting.toId)}, đang chờ xác nhận. Chờ xác nhận xong
             rồi hẵng chuyển tiếp.
           </p>
+        ) : (
+          isPayer && (
+            <p className="hint">
+              Chuyển xong thì bấm đây để báo {to.name}. App không tự biết bạn đã chuyển: số dư chỉ trừ khi {to.name} xác nhận.
+            </p>
+          )
         )}
         <button type="button" className="button" onClick={() => setOpen(true)}>
           <Icon name="check" className="small" />

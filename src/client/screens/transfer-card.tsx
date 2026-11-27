@@ -5,6 +5,7 @@ import { bankAppUrl, transferMemo, vietQrPayload } from "../../shared/vietqr";
 import { useApp } from "../app-context";
 import { formatMoney } from "../format";
 import { Icon } from "../icons";
+import { rememberPayment } from "../pending-payment";
 import { QrCode } from "../qr-code";
 import { MomoPay } from "./momo-pay";
 import { SettleActions } from "./settle-actions";
@@ -41,7 +42,13 @@ export function TransferCard({ from, to, amount }: Props) {
     localStorage.setItem(BANK_APP_KEY, id);
   };
 
+  // Leaving to pay: when the payer comes back, the app asks whether it went through.
+  const leavingToPay = () => {
+    if (me?.memberId === from.id) rememberPayment({ fromId: from.id, toId: to.id, amount });
+  };
+
   const copyAccount = async () => {
+    leavingToPay();
     try {
       await navigator.clipboard.writeText(to.accountNo ?? "");
       setCopied(true);
@@ -98,6 +105,7 @@ export function TransferCard({ from, to, amount }: Props) {
               </label>
               {appId === MOMO && (
                 <MomoPay
+                  onPay={leavingToPay}
                   qrText={qrText}
                   accountText={[bank!.name, to.accountNo, to.accountName].filter(Boolean).join(" ")}
                   amount={amount}
@@ -117,7 +125,7 @@ export function TransferCard({ from, to, amount }: Props) {
                     })}
                     rel="noreferrer"
                     // Apps that do not fill in the transfer get the account number on the clipboard to paste.
-                    onClick={app.autofill ? undefined : copyAccount}
+                    onClick={app.autofill ? leavingToPay : copyAccount}
                   >
                     <Icon name="wallet" className="small" />
                     Mở {app.name}

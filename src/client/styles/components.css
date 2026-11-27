@@ -216,6 +216,26 @@ fieldset:disabled .toggle.hours[data-present="true"] { opacity: 1; }
 }
 .savebar p { padding: 0 var(--sp-4); font-size: var(--text-caption); line-height: 1.4; letter-spacing: 0; text-align: center; }
 
+/* "Đã chuyển … chưa?": floats above the tab bar when the payer comes back from paying */
+.return-prompt {
+  position: fixed;
+  left: var(--sp-16);
+  right: var(--sp-16);
+  bottom: calc(var(--tabbar) + var(--tabbar-gap) + env(safe-area-inset-bottom) + var(--sp-12));
+  z-index: 30;
+  display: grid;
+  gap: var(--sp-8);
+  max-width: 420px;
+  margin: 0 auto;
+  padding: var(--sp-20);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--float-shadow), 0 0 0 1px var(--line);
+  text-align: center;
+  animation: fade-in var(--base) var(--ease) both;
+}
+.return-prompt .row-buttons { margin-top: var(--sp-8); }
+
 /* Segmented control: white track, black thumb */
 .segmented {
   position: relative;

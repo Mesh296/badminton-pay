@@ -7,6 +7,7 @@ import { ActivityFeed } from "./screens/activity-feed";
 import { Balances } from "./screens/balances";
 import { HistoryStats } from "./screens/history-stats";
 import { MemberDetail } from "./screens/member-detail";
+import { PaymentReturnPrompt } from "./screens/payment-return-prompt";
 import { Members } from "./screens/members";
 import { SessionForm } from "./screens/session-form";
 import { TransferForm } from "./screens/transfer-form";
@@ -121,6 +122,7 @@ export default function App() {
             >
               {screen.body}
             </div>
+            <PaymentReturnPrompt />
           </AppContext.Provider>
         ) : loadFailed ? (
           <div className="empty">

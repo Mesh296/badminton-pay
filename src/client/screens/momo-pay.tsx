@@ -9,16 +9,19 @@ interface Props {
   /** Bank, account number and holder as text, for MoMo's paste-to-fill */
   accountText: string;
   amount: number;
+  /** Called as the payer leaves for MoMo */
+  onPay: () => void;
 }
 
 // Paying from MoMo. MoMo opens on no prefilled bank transfer from a link, but
 // it reads a QR image shared to it from the share sheet and fills in the
 // receiver. Where files cannot be shared, the account goes on the clipboard
 // and MoMo opens; its search bar fills the bank and account from a paste.
-export function MomoPay({ qrText, accountText, amount }: Props) {
+export function MomoPay({ qrText, accountText, amount, onPay }: Props) {
   const [pasted, setPasted] = useState(false);
 
   const send = async () => {
+    onPay();
     const file = qrPngFile(qrText, "ma-qr-chuyen-tien.png");
     if (navigator.canShare?.({ files: [file] })) {
       // Cancelling the share sheet rejects; nothing to do then.
