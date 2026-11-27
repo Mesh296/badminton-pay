@@ -2,6 +2,8 @@
 
 * { box-sizing: border-box; }
 
+/* The page background on html too: iPhone colours a home screen app's status bar from it */
+html { background: var(--bg); }
 body {
   margin: 0;
   min-height: 100dvh;
