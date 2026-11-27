@@ -247,6 +247,8 @@ img.avatar { object-fit: cover; }
   --track-w: 64px;
   --track-h: 30px;
   --knob: 42px;
+  /* How far the knob travels: it spills past each end by the same 6px */
+  --travel: calc(var(--track-w) - var(--knob) + 12px);
   position: relative;
   flex: none;
   width: var(--track-w);
@@ -285,11 +287,31 @@ img.avatar { object-fit: cover; }
   background: #fff;
   box-shadow: 0 2px 5px rgb(0 0 0 / 0.18), inset 0 -1px 2px rgb(0 0 0 / 0.06);
 }
-/* Across to the far end: the knob spills past it by as much as at the start */
-.switch[aria-checked="true"] .switch-knob { translate: calc(var(--track-w) - var(--knob) + 12px) 0; }
-/* Pressed, and while it slides: the glass squashes like a drop */
-.switch:active:not(:disabled) .switch-knob,
-.switch.moving .switch-knob { scale: 1.12 0.92; }
+.switch[aria-checked="true"] .switch-knob { translate: var(--travel) 0; }
+/* Held down: the drop gives a little */
+.switch:active:not(:disabled) .switch-knob { scale: 1.06 0.95; }
+/* After a flip the knob moves like a drop of liquid, in one motion: it
+   stretches as it leaves, overshoots the end and squashes against it, bounces
+   back once and settles. Position and shape share the keyframes, so they never
+   fall out of step. Length: MOTION_MS in glass-switch.tsx. */
+/* The keyframes alone move it then; a transition underneath would only fight them. */
+.switch.moving .switch-knob { transition: none; }
+.switch.moving[aria-checked="true"] .switch-knob { animation: knob-to-on 560ms both; }
+.switch.moving[aria-checked="false"] .switch-knob { animation: knob-to-off 560ms both; }
+@keyframes knob-to-on {
+  0% { translate: 0 0; scale: 1 1; animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1); }
+  38% { translate: calc(var(--travel) * 0.6) 0; scale: 1.2 0.86; animation-timing-function: cubic-bezier(0.2, 0, 0.4, 1); }
+  64% { translate: calc(var(--travel) * 1.09) 0; scale: 0.9 1.09; animation-timing-function: ease-in-out; }
+  82% { translate: calc(var(--travel) * 0.97) 0; scale: 1.04 0.97; animation-timing-function: ease-in-out; }
+  100% { translate: var(--travel) 0; scale: 1 1; }
+}
+@keyframes knob-to-off {
+  0% { translate: var(--travel) 0; scale: 1 1; animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1); }
+  38% { translate: calc(var(--travel) * 0.4) 0; scale: 1.2 0.86; animation-timing-function: cubic-bezier(0.2, 0, 0.4, 1); }
+  64% { translate: calc(var(--travel) * -0.09) 0; scale: 0.9 1.09; animation-timing-function: ease-in-out; }
+  82% { translate: calc(var(--travel) * 0.03) 0; scale: 1.04 0.97; animation-timing-function: ease-in-out; }
+  100% { translate: 0 0; scale: 1 1; }
+}
 
 /* "Đã chuyển … chưa?": floats above the tab bar when the payer comes back from paying */
 .return-prompt {

@@ -8,13 +8,12 @@ interface Props {
   labelledBy: string;
 }
 
-/** How long the knob stays a glass lens after a flip; matches --base in tokens.css. */
-const LENS_MS = 320;
+/** Length of the knob's flip motion; matches the knob-to-on/off keyframes in components.css. */
+const MOTION_MS = 560;
 
-// An on/off switch in the iPhone style: green track when on, gray when off.
-// At rest the knob is a white pill; while pressed and as it slides it swells
-// into a clear glass lens larger than the track, the green or gray showing
-// through, then settles back (components.css .switch).
+// An on/off switch with iPhone's colours, green when on and gray when off,
+// and a knob that is a glass lens bigger than the track. A flip moves the
+// knob like a drop of liquid (components.css .switch).
 export function GlassSwitch({ checked, onChange, disabled = false, labelledBy }: Props) {
   const [moving, setMoving] = useState(false);
   const timer = useRef<number | undefined>(undefined);
@@ -22,7 +21,7 @@ export function GlassSwitch({ checked, onChange, disabled = false, labelledBy }:
   const flip = () => {
     window.clearTimeout(timer.current);
     setMoving(true);
-    timer.current = window.setTimeout(() => setMoving(false), LENS_MS);
+    timer.current = window.setTimeout(() => setMoving(false), MOTION_MS);
     onChange(!checked);
   };
 
