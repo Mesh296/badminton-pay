@@ -34,7 +34,7 @@ function JoinRequestsCard() {
     if (window.confirm(`Từ chối ${request.name} (${request.email})?`)) void write("DELETE", `/api/join/${request.id}`);
   };
   // Members an admin added before they signed in: a request may be one of them.
-  const withoutEmail = [...state.members].filter((m) => !m.email).sort(byName);
+  const withoutEmail = state.members.filter((m) => !m.email).sort(byName);
   const link = (request: JoinRequest, memberId: number) => {
     const member = state.members.find((m) => m.id === memberId);
     if (member && window.confirm(`Gộp ${request.email} vào ${member.name}? ${member.name} sẽ đăng nhập bằng email này.`)) {

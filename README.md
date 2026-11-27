@@ -42,6 +42,7 @@ Deploy, đăng nhập Google, cập nhật, sao lưu:
 - Chỉ người nhận tiền mới ghi nhận "Đã nhận", nên người nợ không tự xóa nợ được: "Đã chuyển" chỉ là lời báo.
 - Lỡ nhập sai: bấm vào buổi hoặc khoản chuyển trong tab Lịch sử để sửa hoặc xóa (người ứng, người nhận, hoặc quản trị).
 - Tab Thông báo (icon chuông, chấm đỏ khi có tin mới từ người khác) ghi ai thêm, sửa, xóa buổi hay chuyển khoản, ai báo đã chuyển, hủy báo hay báo chưa nhận, ai vào nhóm, ai đăng nhập; lúc nào, trước và sau. Ai cũng xem được, thay đổi đụng tới mình có chữ "Có bạn", tin mới có chấm đỏ, thứ bị xóa khôi phục được.
+- Mỗi buổi ghi sân (8 sân có sẵn trong database, bảng `courts`) và khung giờ (bắt đầu mỗi 30 phút, kết thúc sau 1–6 giờ chẵn; số giờ chơi suy ra từ khung giờ). Buổi mới lấy sẵn sân và giờ của buổi trước. Tab Lịch sử → Thống kê có ô số liệu, biểu đồ cột chi theo tháng, và xếp hạng theo sân, theo người.
 - Ảnh đại diện: tab Cài đặt → bấm avatar → chọn ảnh từ thư viện iPhone (hoặc chụp). Ảnh được cắt vuông, thu nhỏ trên máy rồi mới gửi; ai mở app cũng thấy, như tên.
 - Chống ghi trùng: một người chỉ có một lần báo chuyển đang chờ cho mỗi người nhận; người nhận không ghi "Đã nhận" thẳng được khi đang có lời báo chờ xác nhận; ai đã hết nợ thì không báo chuyển được; lưu lại buổi sau khi mất mạng không tạo buổi thứ hai.
 - Thành viên tự sửa tên và số tài khoản của mình.

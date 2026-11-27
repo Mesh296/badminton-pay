@@ -38,7 +38,18 @@ export function formatDate(iso: string): string {
 /** "2026-11-27" -> "27/11", for tight rows */
 export const formatDayMonth = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
 
+/** Short money for chart labels: 85.000đ -> "85k", 1.234.000đ -> "1,23tr". */
+export function formatMoneyShort(amount: number): string {
+  const thousands = Math.round(amount / 1000);
+  // From 999.500đ up it is millions, so it never shows "1000k"
+  if (Math.abs(thousands) >= 1000) {
+    return `${(amount / 1_000_000).toFixed(2).replace(/\.?0+$/, "").replace(".", ",")}tr`;
+  }
+  return `${thousands}k`;
+}
+
 /** "2026-11-27" -> "11/2026" */
+
 export const formatMonth = (iso: string) => `${iso.slice(5, 7)}/${iso.slice(0, 4)}`;
 
 export const byName = (a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name, "vi");

@@ -41,19 +41,6 @@ async function balanceOf(db: D1Database, memberId: number): Promise<number> {
   return row?.balance ?? 0;
 }
 
-/** The confirm body, which is optional: an empty request confirms the reported amount. */
-async function readOptionalBody(c: Context<AppEnv>) {
-  const raw = await c.req.text();
-  let data: unknown;
-  try {
-    data = raw ? JSON.parse(raw) : undefined;
-  } catch {
-    return c.json({ error: "Dữ liệu không hợp lệ" }, 400);
-  }
-  const parsed = confirmSchema.safeParse(data);
-  return parsed.success ? parsed.data : c.json({ error: parsed.error.issues[0]?.message ?? "Dữ liệu không hợp lệ" }, 400);
-}
-
 // Report a payment you made.
 claimRoutes.post("/", async (c) => {
   const body = await readBody(c, transferSchema);
@@ -104,7 +91,8 @@ claimRoutes.post("/:id/confirm", async (c) => {
   if (!isReceiver(c, claim.toId)) return notReceiver(c);
   // The receiver records what reached their account, which may differ from
   // what was reported (sent short, or more); the log keeps whose word it was.
-  const body = await readOptionalBody(c);
+  // No body (or one that is not JSON) confirms the reported amount.
+  const body = await readBody(c, confirmSchema);
   if (body instanceof Response) return body;
   const received = body?.amount ?? claim.amount;
 

@@ -1,5 +1,6 @@
 import { getCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
+import { fromBase64Url, toBase64Url } from "../shared/base64url";
 import type { Me } from "../shared/types";
 import type { AppEnv } from "./index";
 
@@ -14,15 +15,6 @@ export const SESSION_SECONDS = 60 * 60 * 24 * 365;
 const MIN_SECRET_LENGTH = 32;
 
 const encoder = new TextEncoder();
-
-const toBase64Url = (bytes: ArrayBuffer | Uint8Array) =>
-  btoa(String.fromCharCode(...new Uint8Array(bytes)))
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-
-export const fromBase64Url = (text: string) =>
-  Uint8Array.from(atob(text.replace(/-/g, "+").replace(/_/g, "/")), (ch) => ch.charCodeAt(0));
 
 const hmacKey = (secret: string) =>
   crypto.subtle.importKey("raw", encoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign", "verify"]);
@@ -39,7 +31,7 @@ export function loginConfigured(env: Env): boolean {
 export async function signSession(email: string, secret: string, nowMs = Date.now()): Promise<string> {
   const payload = toBase64Url(encoder.encode(JSON.stringify({ email, exp: Math.floor(nowMs / 1000) + SESSION_SECONDS })));
   const signature = await crypto.subtle.sign("HMAC", await hmacKey(secret), encoder.encode(payload));
-  return `${payload}.${toBase64Url(signature)}`;
+  return `${payload}.${toBase64Url(new Uint8Array(signature))}`;
 }
 
 /** Email from a cookie value, or null when it is malformed, forged or expired. */

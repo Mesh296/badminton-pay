@@ -42,7 +42,13 @@ function sessionChanges(before: SessionSnapshot, after: SessionSnapshot, nameOf:
     parts.push(`${before.attendees.length} → ${after.attendees.length} người`);
   } else if (ids(before) !== ids(after)) parts.push("đổi người đi");
   else if (ids(before, true) !== ids(after, true)) parts.push("đổi người uống");
+  // Sessions logged before courts and times have neither; that is no change.
+  const rangeChanged =
+    (before.startTime ?? null) !== (after.startTime ?? null) || (before.endTime ?? null) !== (after.endTime ?? null);
+  // A new range usually moves everyone's hours with it; say it once.
+  if (rangeChanged) parts.push("đổi khung giờ");
   else if (hoursOf(before) !== hoursOf(after)) parts.push("đổi giờ chơi");
+  if ((before.courtId ?? null) !== (after.courtId ?? null)) parts.push("đổi sân");
   if (before.note !== after.note) parts.push("sửa ghi chú");
   return parts.join(" · ") || "không đổi gì";
 }

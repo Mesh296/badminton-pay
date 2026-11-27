@@ -1,5 +1,6 @@
 import { Hono, type Context } from "hono";
 import { splitSession } from "../shared/money";
+import { hoursBetween } from "../shared/session-time";
 import type { Me, SessionSnapshot } from "../shared/types";
 import { logActivity, readStoredSession } from "./activity-log";
 import { membersExist, readBody } from "./http-helpers";
@@ -27,10 +28,16 @@ function toSnapshot(id: string, body: SessionInput, stored?: SessionSnapshot | n
     attendees: body.attendees.map((a) => ({ ...a, hours: a.hours ?? storedHours.get(a.memberId) ?? 1 })),
   };
   const shares = splitSession(input);
+  // Left out by an app from before courts and times: keep what is stored. The
+  // time range is one unit: kept whole only when both ends are left out.
+  const keepRange = body.startTime === undefined && body.endTime === undefined;
   return {
     id,
     date: input.date,
     payerId: input.payerId,
+    courtId: body.courtId === undefined ? (stored?.courtId ?? null) : body.courtId,
+    startTime: keepRange ? (stored?.startTime ?? null) : (body.startTime ?? null),
+    endTime: keepRange ? (stored?.endTime ?? null) : (body.endTime ?? null),
     courtAmount: input.courtAmount,
     drinkAmount: input.drinkAmount,
     note: input.note,
@@ -51,6 +58,18 @@ function attendeeInserts(db: D1Database, session: SessionSnapshot): D1PreparedSt
   );
 }
 
+/**
+ * Why a session as it will be stored cannot be, or null. Checked after the
+ * stored and sent values are merged: an app from before time ranges can still
+ * send hours, and they must fit the range kept for it.
+ */
+function rangeProblem(session: SessionSnapshot): string | null {
+  if (!session.startTime || !session.endTime) return session.startTime || session.endTime ? "Chọn cả giờ bắt đầu và giờ kết thúc" : null;
+  const length = hoursBetween(session.startTime, session.endTime);
+  if (length === null) return "Khung giờ không hợp lệ";
+  return session.attendees.some((a) => a.hours > length) ? "Có người chơi lâu hơn khung giờ. Mở lại app rồi sửa." : null;
+}
+
 // Writes need a signed-in account (index.ts answers 401 otherwise).
 const actorOf = (c: Context<AppEnv>) => c.get("actor") as Me;
 
@@ -61,6 +80,9 @@ async function readSession(c: Context<AppEnv>): Promise<SessionInput | Response>
   const ids = [body.payerId, ...body.attendees.map((a) => a.memberId)];
   if (!(await membersExist(c.env.DB, ids))) {
     return c.json({ error: "Có thành viên không tồn tại" }, 400);
+  }
+  if (body.courtId && !(await c.env.DB.prepare("SELECT 1 FROM courts WHERE id = ?").bind(body.courtId).first())) {
+    return c.json({ error: "Không có sân này" }, 400);
   }
   return body;
 }
@@ -75,13 +97,26 @@ sessionRoutes.post("/", async (c) => {
   // Saved already: the app is retrying after its reply was lost.
   if (await db.prepare("SELECT 1 FROM sessions WHERE id = ?").bind(id).first()) return c.json({ id }, 200);
   const session = toSnapshot(id, body);
+  const problem = rangeProblem(session);
+  if (problem) return c.json({ error: problem }, 400);
   // One batch = one transaction: a session never exists without its attendees or its log entry.
   await db.batch([
     db
       .prepare(
-        "INSERT INTO sessions (id, date, payer_id, court_amount, drink_amount, note) VALUES (?, ?, ?, ?, ?, ?)",
+        `INSERT INTO sessions (id, date, payer_id, court_id, start_time, end_time, court_amount, drink_amount, note)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
-      .bind(id, body.date, body.payerId, body.courtAmount, body.drinkAmount, body.note),
+      .bind(
+        id,
+        session.date,
+        session.payerId,
+        session.courtId,
+        session.startTime,
+        session.endTime,
+        session.courtAmount,
+        session.drinkAmount,
+        session.note,
+      ),
     ...attendeeInserts(db, session),
     logActivity(db, actorOf(c), "session.create", null, session),
   ]);
@@ -101,13 +136,26 @@ sessionRoutes.put("/:id", async (c) => {
   if (!ownsSession(c, body.payerId)) return notOwner(c);
 
   const updated = toSnapshot(id, body, existing);
+  const problem = rangeProblem(updated);
+  if (problem) return c.json({ error: problem }, 400);
   try {
     await db.batch([
       db
         .prepare(
-          "UPDATE sessions SET date = ?, payer_id = ?, court_amount = ?, drink_amount = ?, note = ? WHERE id = ?",
+          `UPDATE sessions SET date = ?, payer_id = ?, court_id = ?, start_time = ?, end_time = ?,
+             court_amount = ?, drink_amount = ?, note = ? WHERE id = ?`,
         )
-        .bind(body.date, body.payerId, body.courtAmount, body.drinkAmount, body.note, id),
+        .bind(
+          updated.date,
+          updated.payerId,
+          updated.courtId,
+          updated.startTime,
+          updated.endTime,
+          updated.courtAmount,
+          updated.drinkAmount,
+          updated.note,
+          id,
+        ),
       db.prepare("DELETE FROM session_attendees WHERE session_id = ?").bind(id),
       ...attendeeInserts(db, updated),
       logActivity(db, actorOf(c), "session.update", existing, updated),

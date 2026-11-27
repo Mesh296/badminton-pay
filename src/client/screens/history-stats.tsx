@@ -1,9 +1,10 @@
 import { useState } from "react";
 import type { Session, Transfer } from "../../shared/types";
 import { useApp } from "../app-context";
-import { byName, formatDate, formatDayMonth, formatMoney, formatMonth } from "../format";
+import { formatDate, formatDayMonth, formatMoney } from "../format";
 import { Icon } from "../icons";
 import { cssVars } from "../css-vars";
+import { Stats } from "./stats";
 
 type Entry = { date: string; session: Session } | { date: string; transfer: Transfer };
 
@@ -52,8 +53,15 @@ function History() {
               <span className="row-main">
                 <span className="row-title">{formatDate(entry.date)}</span>
                 <span className="row-sub">
-                  {entry.session.attendees.length} người · {nameOf(entry.session.payerId)} ứng
-                  {entry.session.note && <> · {entry.session.note}</>}
+                  {[
+                    state.courts.find((c) => c.id === entry.session.courtId)?.name,
+                    entry.session.startTime && `${entry.session.startTime}–${entry.session.endTime}`,
+                    `${entry.session.attendees.length} người`,
+                    `${nameOf(entry.session.payerId)} ứng`,
+                    entry.session.note,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
                 </span>
               </span>
               <span className="row-end">{formatMoney(entry.session.courtAmount + entry.session.drinkAmount)}</span>
@@ -78,78 +86,5 @@ function History() {
         ),
       )}
     </ul>
-  );
-}
-
-function Stats() {
-  const { state } = useApp();
-  if (state.sessions.length === 0) return <p className="empty">Chưa có số liệu</p>;
-
-  // month (YYYY-MM) -> { sessions, total spent }
-  const months = new Map<string, { count: number; total: number }>();
-  // memberId -> { sessions attended, total share }
-  const perMember = new Map<number, { count: number; total: number }>();
-  for (const session of state.sessions) {
-    const month = months.get(session.date.slice(0, 7)) ?? { count: 0, total: 0 };
-    month.count += 1;
-    month.total += session.courtAmount + session.drinkAmount;
-    months.set(session.date.slice(0, 7), month);
-    for (const attendee of session.attendees) {
-      const row = perMember.get(attendee.memberId) ?? { count: 0, total: 0 };
-      row.count += 1;
-      row.total += attendee.share;
-      perMember.set(attendee.memberId, row);
-    }
-  }
-
-  return (
-    <>
-      <h3 className="section-title">Theo tháng</h3>
-      <div className="surface table-card">
-        <table className="table">
-          <thead>
-            <tr>
-              <th scope="col">Tháng</th>
-              <th scope="col">Buổi</th>
-              <th scope="col">Chi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {[...months].sort(([a], [b]) => b.localeCompare(a)).map(([month, row]) => (
-              <tr key={month}>
-                <th scope="row">{formatMonth(month)}</th>
-                <td>{row.count}</td>
-                <td>{formatMoney(row.total)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <h3 className="section-title">Theo người</h3>
-      <div className="surface table-card">
-        <table className="table">
-          <thead>
-            <tr>
-              <th scope="col">Tên</th>
-              <th scope="col">Buổi</th>
-              <th scope="col">Tiền</th>
-            </tr>
-          </thead>
-          <tbody>
-            {state.members
-              .filter((m) => perMember.has(m.id))
-              .sort(byName)
-              .map((m) => (
-                <tr key={m.id}>
-                  <th scope="row">{m.name}</th>
-                  <td>{perMember.get(m.id)!.count}</td>
-                  <td>{formatMoney(perMember.get(m.id)!.total)}</td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
-      </div>
-    </>
   );
 }

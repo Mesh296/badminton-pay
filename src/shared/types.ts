@@ -21,10 +21,21 @@ export interface Attendee {
   share: number;
 }
 
+/** A badminton venue, for where each session was played. */
+export interface Court {
+  id: number;
+  name: string;
+}
+
 export interface Session {
   id: string;
   date: string; // YYYY-MM-DD
   payerId: number;
+  /** Where it was played; null for sessions entered before courts were recorded */
+  courtId: number | null;
+  /** "18:00"-"20:00", on the half hour, a whole number of hours apart; null when not given */
+  startTime: string | null;
+  endTime: string | null;
   courtAmount: number;
   drinkAmount: number;
   note: string | null;
@@ -91,6 +102,8 @@ export interface Me {
 
 export interface AppState {
   members: Member[];
+  /** Venues to pick from, by name */
+  courts: Court[];
   sessions: Session[];
   transfers: Transfer[];
   /** Payments a payer reported sending, oldest first. Not in any balance until the receiver confirms them. */

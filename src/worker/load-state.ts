@@ -15,6 +15,9 @@ export interface SessionRow {
   date: string;
   payer_id: number;
   court_amount: number;
+  court_id: number | null;
+  start_time: string | null;
+  end_time: string | null;
   drink_amount: number;
   note: string | null;
 }
@@ -58,6 +61,9 @@ export const sessionFromRow = (row: SessionRow, attendees: Attendee[]): Session 
   id: row.id,
   date: row.date,
   payerId: row.payer_id,
+  courtId: row.court_id,
+  startTime: row.start_time,
+  endTime: row.end_time,
   courtAmount: row.court_amount,
   drinkAmount: row.drink_amount,
   note: row.note,
@@ -121,14 +127,16 @@ async function loadJoinRequests(db: D1Database, actor: Me | null): Promise<JoinR
  * Ceiling: whole-history payload; move aggregation into SQL if it nears ~1 MB.
  */
 export async function loadState(db: D1Database, actor: Me | null): Promise<AppState> {
-  const [members, sessions, attendees, transfers, claims, activity] = await db.batch([
+  const [members, courts, sessions, attendees, transfers, claims, activity] = await db.batch([
     db.prepare(
       `SELECT id, name, bank_code, account_no, account_name, active, email,
          (SELECT updated_at FROM member_avatars WHERE member_id = members.id) AS avatar
        FROM members ORDER BY id`,
     ),
+    db.prepare("SELECT id, name FROM courts ORDER BY name"),
     db.prepare(
-      "SELECT id, date, payer_id, court_amount, drink_amount, note FROM sessions ORDER BY date DESC, rowid DESC",
+      `SELECT id, date, payer_id, court_id, start_time, end_time, court_amount, drink_amount, note
+       FROM sessions ORDER BY date DESC, start_time DESC, rowid DESC`,
     ),
     db.prepare("SELECT session_id, member_id, drank, hours, share FROM session_attendees ORDER BY member_id"),
     db.prepare("SELECT id, date, from_id, to_id, amount, note FROM transfers ORDER BY date DESC, id DESC"),
@@ -154,6 +162,7 @@ export async function loadState(db: D1Database, actor: Me | null): Promise<AppSt
       avatar: row.avatar,
       ...(actor?.admin ? { email: row.email } : {}),
     })),
+    courts: courts.results as { id: number; name: string }[],
     sessions: (sessions.results as SessionRow[]).map((row) => sessionFromRow(row, attendeesBySession.get(row.id) ?? [])),
     transfers: (transfers.results as TransferRow[]).map(transferFromRow),
     claims: (claims.results as TransferRow[]).map(transferFromRow),

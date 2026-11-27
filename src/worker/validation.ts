@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { BANK_CODES } from "../shared/banks";
 import { MAX_AMOUNT, MAX_HOURS } from "../shared/money";
+import { hoursBetween, START_TIMES, TIME_PATTERN } from "../shared/session-time";
 
 // Request body schemas. Every write is validated here before touching D1.
 
@@ -76,6 +77,11 @@ export const sessionSchema = z
     id: z.uuid("Dữ liệu không hợp lệ").optional(),
     date,
     payerId: memberId,
+    // Where and when, all optional. Left out (not null) by an app opened
+    // before they existed: an edit then keeps what is stored (routes-sessions.ts).
+    courtId: z.number("Sân không hợp lệ").int("Sân không hợp lệ").positive("Sân không hợp lệ").nullable().optional(),
+    startTime: z.string().regex(TIME_PATTERN, "Giờ không hợp lệ").nullable().optional(),
+    endTime: z.string().regex(TIME_PATTERN, "Giờ không hợp lệ").nullable().optional(),
     courtAmount: amount,
     drinkAmount: amount,
     note: optionalText(200),
@@ -108,6 +114,18 @@ export const sessionSchema = z
     }
     if (session.drinkAmount > 0 && !session.attendees.some((a) => a.drank)) {
       ctx.addIssue({ code: "custom", message: "Chọn người uống" });
+    }
+    // A time range is both ends or neither, whole hours apart; nobody plays longer than it.
+    const { startTime, endTime } = session;
+    if (Boolean(startTime) !== Boolean(endTime)) {
+      ctx.addIssue({ code: "custom", message: "Chọn cả giờ bắt đầu và giờ kết thúc" });
+    } else if (startTime && endTime) {
+      if (!START_TIMES.includes(startTime)) {
+        ctx.addIssue({ code: "custom", message: "Giờ bắt đầu từ 05:00 đến 22:30" });
+      } else if (hoursBetween(startTime, endTime) === null) {
+        ctx.addIssue({ code: "custom", message: `Giờ kết thúc phải sau giờ bắt đầu 1 đến ${MAX_HOURS} giờ chẵn` });
+      }
+      // Hours against the range: routes-sessions.ts, once stored values are merged in.
     }
   });
 

@@ -35,6 +35,10 @@
   --on-accent: var(--white);
   --danger: var(--red); /* errors and destructive actions only */
   /* Switches, as on iPhone: green when on, translucent gray when off */
+  /* Charts: the series in the accent (a step darker in dark mode, inside the
+     chart lightness band), context in a quiet gray */
+  --chart-accent: var(--violet);
+  --chart-muted: #8e8e95; /* 3.2:1 on the card: a bar's height must stay readable */
   --switch-on: #34c759;
   --switch-off: rgb(120 120 128 / 0.16);
   --disabled: #d9d9d9;
@@ -160,6 +164,8 @@
     --red: #ff6961; /* iOS's high-contrast red for dark backgrounds: 6:1 on the dark card */
 
     --fill: var(--chip); /* fields need to stand off the dark card */
+    --chart-accent: #9a8cf2;
+    --chart-muted: #6b6b72; /* 3.2:1 on the dark card */
     --switch-on: #30d158;
     --switch-off: rgb(120 120 128 / 0.32);
     --on-primary: #111111; /* text on the now-white primary buttons */

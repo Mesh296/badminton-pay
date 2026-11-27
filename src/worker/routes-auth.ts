@@ -1,6 +1,7 @@
 import { Hono, type Context } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
-import { loginConfigured, fromBase64Url, SESSION_COOKIE, SESSION_SECONDS, signSession } from "./auth-session";
+import { fromBase64Url } from "../shared/base64url";
+import { loginConfigured, SESSION_COOKIE, SESSION_SECONDS, signSession } from "./auth-session";
 import type { AppEnv } from "./index";
 import { logActivity } from "./activity-log";
 

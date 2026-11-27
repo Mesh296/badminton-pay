@@ -219,3 +219,68 @@ describe("path id handling", () => {
     expect(after?.n).toBe(before?.n);
   });
 });
+
+describe("where and when a session was played", () => {
+  const courts = async () => (await getState()).courts;
+
+  it("offers the eight courts and stores the court and time range given", async () => {
+    expect((await courts()).map((c) => c.name).sort()).toEqual(
+      ["Lan Anh", "Linh", "Minh Anh", "Phong Hưng", "Thanh Nam", "Thuần Vân", "Trung Nguyên", "Tuấn Tú"].sort(),
+    );
+    const trungNguyen = (await courts()).find((c) => c.name === "Trung Nguyên")!.id;
+    const ids = await addMembers(2);
+    const body = sessionBody(ids, { courtId: trungNguyen, startTime: "18:30", endTime: "20:30" });
+    expect((await call("POST", "/api/sessions", body)).status).toBe(201);
+    expect((await getState()).sessions[0]).toMatchObject({ courtId: trungNguyen, startTime: "18:30", endTime: "20:30" });
+  });
+
+  it("takes only whole-hour ranges on the half hour, both ends or neither, and real courts", async () => {
+    const ids = await addMembers(2);
+    const bad = [
+      { startTime: "18:00" },
+      { startTime: "18:00", endTime: "18:00" },
+      { startTime: "18:00", endTime: "19:30" },
+      { startTime: "18:00", endTime: "17:00" },
+      { startTime: "15:00", endTime: "22:00" },
+      { startTime: "18:15", endTime: "19:15" },
+      { startTime: "25:00", endTime: "26:00" },
+      { courtId: 999_999 },
+      { startTime: "18:00", endTime: "19:00", attendees: ids.map((memberId) => ({ memberId, drank: true, hours: 2 })) },
+    ];
+    for (const extra of bad) expect((await call("POST", "/api/sessions", sessionBody(ids, extra))).status, JSON.stringify(extra)).toBe(400);
+    expect((await getState()).sessions).toEqual([]);
+  });
+
+  it("keeps the court and time when an app from before them edits the session, and clears them on an explicit null", async () => {
+    const ids = await addMembers(2);
+    const courtId = (await courts())[0].id;
+    const { id } = (await (await call("POST", "/api/sessions", sessionBody(ids, { courtId, startTime: "18:00", endTime: "20:00" }))).json()) as { id: string };
+    expect((await call("PUT", `/api/sessions/${id}`, sessionBody(ids, { note: "sửa" }))).status).toBe(200);
+    expect((await getState()).sessions[0]).toMatchObject({ courtId, startTime: "18:00", endTime: "20:00", note: "sửa" });
+    expect((await call("PUT", `/api/sessions/${id}`, sessionBody(ids, { courtId: null, startTime: null, endTime: null }))).status).toBe(200);
+    expect((await getState()).sessions[0]).toMatchObject({ courtId: null, startTime: null, endTime: null });
+  });
+});
+
+describe("time ranges from apps of different ages", () => {
+  it("refuses hours longer than the stored range when an old app leaves the range out", async () => {
+    const ids = await addMembers(2);
+    const twoHours = ids.map((memberId) => ({ memberId, drank: true, hours: 2 }));
+    const { id } = (await (await call("POST", "/api/sessions", sessionBody(ids, { startTime: "18:00", endTime: "20:00", attendees: twoHours }))).json()) as { id: string };
+    const threeHours = ids.map((memberId) => ({ memberId, drank: true, hours: 3 }));
+    expect((await call("PUT", `/api/sessions/${id}`, sessionBody(ids, { attendees: threeHours }))).status).toBe(400);
+    expect((await getState()).sessions[0].attendees.map((a) => a.hours)).toEqual([2, 2]);
+  });
+
+  it("treats the start and end as one: sending one end never leaves half a range", async () => {
+    const ids = await addMembers(2);
+    const { id } = (await (await call("POST", "/api/sessions", sessionBody(ids, { startTime: "18:00", endTime: "20:00" }))).json()) as { id: string };
+    expect((await call("PUT", `/api/sessions/${id}`, sessionBody(ids, { endTime: null }))).status).toBe(200);
+    expect((await getState()).sessions[0]).toMatchObject({ startTime: null, endTime: null });
+  });
+
+  it("only takes starts the form offers", async () => {
+    const ids = await addMembers(2);
+    expect((await call("POST", "/api/sessions", sessionBody(ids, { startTime: "02:00", endTime: "03:00" }))).status).toBe(400);
+  });
+});

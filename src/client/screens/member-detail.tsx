@@ -113,7 +113,8 @@ export function MemberDetail({ id }: { id: number }) {
 
       {transfers.length > 0 && (
         <>
-          <h3 className="section-title">Chuyển khoản</h3>
+          {/* Confirmed transfers only; ones still waiting for the receiver show on the cards above */}
+          <h3 className="section-title">Lịch sử chuyển khoản</h3>
           <ul className="list surface">
             {transfers.map((t) => (
               <li key={t.id}>
@@ -123,7 +124,7 @@ export function MemberDetail({ id }: { id: number }) {
                   </span>
                   <span className="row-main">
                     <span className="row-title">
-                      {t.fromId === id ? `Cho ${nameOf(t.toId)}` : `Từ ${nameOf(t.fromId)}`}
+                      {t.fromId === id ? `Đã chuyển cho ${nameOf(t.toId)}` : `Đã nhận từ ${nameOf(t.fromId)}`}
                     </span>
                     <span className="row-sub">{formatDate(t.date)}</span>
                   </span>
