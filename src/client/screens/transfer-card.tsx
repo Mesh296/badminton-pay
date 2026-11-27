@@ -108,7 +108,6 @@ export function TransferCard({ from, to, amount }: Props) {
                   onPay={leavingToPay}
                   qrText={qrText}
                   accountText={[bank!.name, to.accountNo, to.accountName].filter(Boolean).join(" ")}
-                  amount={amount}
                 />
               )}
               {app && (
@@ -130,14 +129,28 @@ export function TransferCard({ from, to, amount }: Props) {
                     <Icon name="wallet" className="small" />
                     Mở {app.name}
                   </a>
-                  <p className="hint">
-                    {app.autofill ? "Tự điền STK, số tiền và nội dung" : "App này chưa tự điền: STK được chép sẵn để dán, số tiền tự nhập"}
-                  </p>
                 </>
               )}
-              {/* The bank shows the real account holder before sending; a name that
-                  differs means the details were changed somewhere on the way. */}
-              {to.accountName && <p className="hint">Tên người nhận trong app ngân hàng phải là {to.accountName}</p>}
+              {/* Only what to do with the chosen app, as short points. The last
+                  one matters most: the bank shows the real account holder before
+                  sending, and a different name means the details were changed. */}
+              <ul className="tips">
+                {appId === MOMO && (
+                  <>
+                    <li>Chọn MoMo trong bảng chia sẻ</li>
+                    <li>Không thấy MoMo: Lưu hình ảnh, rồi vào MoMo → Quét mã → Chọn ảnh QR</li>
+                    <li>Kiểm tra số tiền {formatMoney(amount)}</li>
+                  </>
+                )}
+                {app?.autofill && <li>STK, số tiền và nội dung được điền sẵn</li>}
+                {app && !app.autofill && (
+                  <>
+                    <li>STK đã được chép, dán vào app</li>
+                    <li>Tự nhập số tiền {formatMoney(amount)}</li>
+                  </>
+                )}
+                {to.accountName && <li>Tên người nhận phải là {to.accountName}</li>}
+              </ul>
             </div>
           )}
         </>

@@ -86,14 +86,14 @@ export function SettleActions({ from, to, amount }: Props) {
       <>
         {waiting ? (
           <p className="hint">
-            Bạn đã báo chuyển {formatMoney(waiting.amount)} cho {nameOf(waiting.toId)}, đang chờ xác nhận. Chờ xác nhận xong
-            rồi hẵng chuyển tiếp.
+            Đang chờ {nameOf(waiting.toId)} xác nhận {formatMoney(waiting.amount)}. Xác nhận xong hẵng chuyển tiếp.
           </p>
         ) : (
           isPayer && (
-            <p className="hint">
-              Chuyển xong thì bấm đây để báo {to.name}. App không tự biết bạn đã chuyển: số dư chỉ trừ khi {to.name} xác nhận.
-            </p>
+            <ul className="tips">
+              <li>Chuyển xong thì bấm nút này để báo {to.name}</li>
+              <li>{to.name} xác nhận rồi số dư mới trừ</li>
+            </ul>
           )
         )}
         <button type="button" className="button" onClick={() => setOpen(true)}>
@@ -120,7 +120,7 @@ export function SettleActions({ from, to, amount }: Props) {
   return (
     <div className="confirm">
       <MoneyInput label={isReceiver ? "Số tiền đã nhận" : "Số tiền đã chuyển"} value={paid} onChange={setPaid} />
-      {!isReceiver && <p className="hint">{to.name} sẽ thấy và xác nhận khi tiền vào tài khoản</p>}
+      {!isReceiver && <p className="hint">{to.name} xác nhận khi thấy tiền về</p>}
       <div className="row-buttons">
         <button type="button" className="button secondary" onClick={() => setOpen(false)}>
           Hủy

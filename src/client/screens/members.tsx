@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { BANKS } from "../../shared/banks";
 import type { JoinRequest } from "../../shared/types";
 import { AccountCard, SignOutButton } from "../account-card";
@@ -99,23 +99,24 @@ function MembersSection() {
   });
   const members = [...state.members].sort((a, b) => Number(b.active) - Number(a.active) || byName(a, b));
 
+  const bodyId = useId();
+  const toggle = () => {
+    setShown(!shown);
+    localStorage.setItem(OPEN_KEY, shown ? "0" : "1");
+  };
+
   return (
-    <details
-      className="members-section"
-      open={shown}
-      onToggle={(e) => {
-        const next = e.currentTarget.open;
-        setShown(next);
-        localStorage.setItem(OPEN_KEY, next ? "1" : "0");
-      }}
-    >
-      <summary>
+    // Not <details>: Safari cannot animate it. The list slides open and shut
+    // instead (components.css .members-collapse), and is inert while shut.
+    <section className={shown ? "members-section open" : "members-section"}>
+      <button type="button" className="members-toggle" aria-expanded={shown} aria-controls={bodyId} onClick={toggle}>
         <span className="setting-icon" aria-hidden="true">
           <Icon name="users" className="small" />
         </span>
         <span className="row-main">Thành viên · {state.members.length}</span>
         <Icon name="chevron-right" className="small chevron" />
-      </summary>
+      </button>
+      <div id={bodyId} className="members-collapse" inert={!shown}>
       <div className="members-body">
         {admin &&
           (open === "new" ? (
@@ -170,6 +171,7 @@ function MembersSection() {
           </ul>
         )}
       </div>
-    </details>
+      </div>
+    </section>
   );
 }

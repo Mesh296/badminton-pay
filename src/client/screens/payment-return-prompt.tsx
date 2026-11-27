@@ -53,7 +53,7 @@ export function PaymentReturnPrompt() {
       <p id="return-prompt-title" className="row-title">
         Đã chuyển {formatMoney(pending.amount)} cho {to} chưa?
       </p>
-      <p className="hint">App không tự biết bạn đã chuyển. Báo để {to} xác nhận, xong là số dư được trừ.</p>
+      <p className="hint">Bấm Đã chuyển để báo {to}. {to} xác nhận rồi số dư mới trừ.</p>
       <div className="row-buttons">
         <button type="button" className="button secondary" onClick={close} disabled={saving}>
           Chưa

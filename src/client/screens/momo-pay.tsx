@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { formatMoney } from "../format";
 import { Icon } from "../icons";
 import { qrPngFile } from "../qr-png";
 
@@ -8,7 +7,6 @@ interface Props {
   qrText: string;
   /** Bank, account number and holder as text, for MoMo's paste-to-fill */
   accountText: string;
-  amount: number;
   /** Called as the payer leaves for MoMo */
   onPay: () => void;
 }
@@ -17,7 +15,7 @@ interface Props {
 // it reads a QR image shared to it from the share sheet and fills in the
 // receiver. Where files cannot be shared, the account goes on the clipboard
 // and MoMo opens; its search bar fills the bank and account from a paste.
-export function MomoPay({ qrText, accountText, amount, onPay }: Props) {
+export function MomoPay({ qrText, accountText, onPay }: Props) {
   const [pasted, setPasted] = useState(false);
 
   const send = async () => {
@@ -39,11 +37,7 @@ export function MomoPay({ qrText, accountText, amount, onPay }: Props) {
         <Icon name="wallet" className="small" />
         Gửi mã QR sang MoMo
       </button>
-      <p className="hint">
-        {pasted
-          ? "Đã chép STK. Trong MoMo bấm Dán ở thanh tìm kiếm, rồi nhập số tiền."
-          : `Chọn MoMo trong bảng chia sẻ: MoMo đọc mã và điền sẵn người nhận. Không thấy MoMo thì chọn Lưu hình ảnh, rồi trong MoMo vào Quét mã → Chọn ảnh QR. Xem lại số tiền ${formatMoney(amount)} trước khi chuyển.`}
-      </p>
+      {pasted && <p className="hint">Đã chép STK. Trong MoMo bấm Dán ở ô tìm kiếm, rồi nhập số tiền.</p>}
     </>
   );
 }

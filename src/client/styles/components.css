@@ -115,6 +115,10 @@
 .account { color: var(--muted); font-size: var(--text-small); text-align: center; overflow-wrap: anywhere; }
 .confirm { display: grid; gap: var(--sp-12); }
 .bank-app { display: grid; gap: var(--sp-12); padding-top: var(--sp-8); border-top: 1px solid var(--line); }
+/* Short how-to points under a payment action: left-aligned so each starts where the eye expects */
+.tips { display: grid; gap: var(--sp-4); padding-left: 1.2em; color: var(--muted); font-size: var(--text-caption); line-height: 1.45; list-style: disc; text-align: left; }
+.tips:empty { display: none; }
+.tips li::marker { color: var(--subtle); }
 /* A form opened inside a list row: no card within a card */
 .list .card.surface { padding: var(--sp-16) 0; border-radius: 0; }
 
@@ -232,12 +236,19 @@ img.avatar { object-fit: cover; }
 .setting-icon { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; background: var(--accent); color: var(--on-accent); }
 /* The same switch offered inside the home screen's summary card */
 .setting-row.offer { min-height: 0; padding: var(--sp-12) var(--sp-16); border-radius: var(--radius-field); background: var(--surface); }
-/* Member list, shown or hidden; the chevron turns when open */
-.members-section > summary { display: flex; align-items: center; gap: var(--sp-12); min-height: 56px; padding: 0 var(--sp-20); border-radius: var(--radius-card); background: var(--surface); font-weight: 600; list-style: none; cursor: pointer; }
-.members-section > summary::-webkit-details-marker { display: none; }
-.members-section > summary .chevron { transition: rotate var(--base) var(--ease); }
-.members-section[open] > summary .chevron { rotate: 90deg; }
-.members-body { display: grid; gap: var(--sp-12); margin-top: var(--sp-12); }
+/* Member list, shown or hidden: it slides open and shut (its row track grows
+   from 0fr to 1fr, which Safari animates too), fading as it goes, and the
+   chevron turns. */
+.members-toggle { display: flex; align-items: center; gap: var(--sp-12); width: 100%; min-height: 56px; padding: 0 var(--sp-20); border: 0; border-radius: var(--radius-card); background: var(--surface); font-weight: 600; text-align: left; }
+.members-toggle .chevron { transition: rotate var(--base) var(--ease); }
+.members-section.open .members-toggle .chevron { rotate: 90deg; }
+.members-collapse { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows var(--base) var(--ease), opacity var(--base) var(--ease); }
+.members-section.open .members-collapse { grid-template-rows: 1fr; opacity: 1; }
+/* Clips while it slides; the side padding leaves room for the cards' shadows.
+   Space above and below sits inside the clip (as margins), so shut means no height at all. */
+.members-body { display: grid; gap: var(--sp-12); min-height: 0; margin: 0 calc(-1 * var(--sp-16)); padding: 0 var(--sp-16); overflow: hidden; }
+.members-body > :first-child { margin-top: var(--sp-12); }
+.members-body > :last-child { margin-bottom: var(--sp-4); }
 
 /* Liquid glass switch (glass-switch.tsx): iPhone's green and gray track, and
    a knob that is always a glass lens, bigger than the track and spilling past
