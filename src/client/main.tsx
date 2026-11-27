@@ -7,6 +7,7 @@ import "@fontsource/be-vietnam-pro/600.css";
 import "@fontsource/be-vietnam-pro/700.css";
 import "./styles.css";
 import App from "./app.tsx";
+import { followAppearance } from "./follow-appearance";
 import { registerServiceWorker } from "./push-notifications";
 
 // Turn on lens refraction where it works. An SVG filter inside backdrop-filter
@@ -21,6 +22,8 @@ else if (navigator.vendor === "Apple Computer, Inc.") document.documentElement.d
 
 // Only for notifications: it caches nothing, so updates still arrive on the next open.
 registerServiceWorker();
+// Recolours the iPhone status bar after a light/dark switch (home screen app only).
+followAppearance();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
