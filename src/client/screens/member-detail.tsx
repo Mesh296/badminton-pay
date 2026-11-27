@@ -2,6 +2,7 @@ import { useApp } from "../app-context";
 import { formatDate, formatMoney, todayIso } from "../format";
 import { Icon } from "../icons";
 import { Avatar, BalanceLabel } from "../member-visuals";
+import { RecordReceivedCard } from "./record-received-card";
 import { TransferCard } from "./transfer-card";
 
 // One member's view: balance, who to pay (with QR) or who will pay them, and
@@ -67,6 +68,9 @@ export function MemberDetail({ id }: { id: number }) {
           </ul>
         </section>
       )}
+
+      {/* For payments that no longer match a suggestion above */}
+      {actsAs(id) && <RecordReceivedCard receiver={member} />}
 
       <h3 className="section-title">Tiền từng buổi</h3>
       {sessions.length === 0 ? (
