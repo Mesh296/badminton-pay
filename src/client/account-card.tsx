@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { LOGIN_URL } from "./api";
 import { useApp } from "./app-context";
+import { Icon } from "./icons";
+import { Avatar } from "./member-visuals";
 import { turnOffPush } from "./push-notifications";
 import { PushToggle } from "./push-toggle";
 import { MemberForm } from "./screens/member-form";
 
-// Who is signed in, with the way in or out. Signing in is what unlocks adding
-// sessions and confirming money received; looking needs no account.
-// A signed-in person who is not in the group yet asks to join here.
+// The top of the settings tab: who is signed in, or the way in. A member sees
+// their avatar (tap it to edit their details) and their options; someone not
+// in the group yet asks to join here.
 export function AccountCard() {
-  const { state, me, write } = useApp();
+  const { state, me } = useApp();
   const [editing, setEditing] = useState(false);
 
   if (!me) {
@@ -23,38 +25,44 @@ export function AccountCard() {
     );
   }
 
-  const signOut = (
-    <button
-      type="button"
-      className="button secondary"
-      // This phone stops ringing for this member before the next person signs in on it.
-      onClick={() => void turnOffPush().then(() => write("POST", "/api/auth/logout"))}
-    >
-      Đăng xuất
-    </button>
-  );
   const member = state.members.find((m) => m.id === me.memberId);
 
-  // In the group: identity, own details, sign out.
   if (member) {
     if (editing) return <MemberForm member={member} mode="self" onDone={() => setEditing(false)} />;
     return (
-      <section className="card surface">
-        <div>
-          <p className="row-title">{member.name}</p>
-          <p className="row-sub">
+      <>
+        <section className="profile">
+          <button type="button" className="profile-avatar" onClick={() => setEditing(true)} aria-label="Sửa thông tin của bạn">
+            <Avatar member={member} size="large" />
+            <span className="profile-edit" aria-hidden="true">
+              <Icon name="pencil" className="small" />
+            </span>
+          </button>
+          <h2>{member.name}</h2>
+          <p className="muted">
             {me.email}
             {me.admin && " · quản trị"}
           </p>
-        </div>
-        <PushToggle />
-        <div className="row-buttons">
-          <button type="button" className="button secondary" onClick={() => setEditing(true)}>
-            Sửa thông tin
-          </button>
-          {signOut}
-        </div>
-      </section>
+        </section>
+
+        <ul className="list surface">
+          <li>
+            <button type="button" className="list-row setting-row" onClick={() => setEditing(true)}>
+              <span className="setting-icon" aria-hidden="true">
+                <Icon name="pencil" className="small" />
+              </span>
+              <span className="row-main">
+                <span className="row-title">Sửa thông tin</span>
+                <span className="row-sub">Tên, ngân hàng, số tài khoản</span>
+              </span>
+              <Icon name="chevron-right" className="small chevron" />
+            </button>
+          </li>
+          <li>
+            <PushToggle />
+          </li>
+        </ul>
+      </>
     );
   }
 
@@ -72,9 +80,23 @@ export function AccountCard() {
         ) : (
           <p className="muted">{me.admin ? "Điền tên để thêm chính bạn vào nhóm" : "Điền tên để xin vào nhóm"}</p>
         )}
-        {signOut}
       </section>
       {!request && <MemberForm mode="join" />}
     </>
+  );
+}
+
+/** Red, at the very bottom of the settings tab. This phone stops ringing for this member first. */
+export function SignOutButton() {
+  const { me, write } = useApp();
+  if (!me) return null;
+  return (
+    <button
+      type="button"
+      className="button signout"
+      onClick={() => void turnOffPush().then(() => write("POST", "/api/auth/logout"))}
+    >
+      Đăng xuất
+    </button>
   );
 }

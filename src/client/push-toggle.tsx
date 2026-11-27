@@ -1,11 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
+import { GlassSwitch } from "./glass-switch";
+import { Icon } from "./icons";
 import { readStatus, turnOffPush, turnOn, type PushStatus } from "./push-notifications";
 
 /**
- * The switch in the account card. With `offerOnly` (home screen, for whoever
- * is owed) it shows only while notifications could be turned on and are not.
+ * "Thông báo" with its switch: rings this phone when someone reports paying
+ * the signed-in member. A settings row by default; with `offerOnly` (home
+ * screen, for whoever is owed) only while it could be turned on and is not.
  */
 export function PushToggle({ offerOnly = false }: { offerOnly?: boolean }) {
+  const labelId = useId();
   const [status, setStatus] = useState<PushStatus | null>(null);
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
@@ -14,27 +18,16 @@ export function PushToggle({ offerOnly = false }: { offerOnly?: boolean }) {
   }, []);
 
   if (status === null || (offerOnly && status !== "off" && !busy)) return null;
-  if (status === "unsupported") {
-    return (
-      <p className="hint">
-        Muốn điện thoại báo khi có người chuyển tiền: thêm app vào màn hình chính (Chia sẻ → Thêm vào MH chính), mở app
-        từ đó rồi bật ở đây. Cần iOS 16.4 trở lên.
-      </p>
-    );
-  }
-  if (status === "blocked") {
-    return <p className="hint">Thông báo của app đang bị chặn. Bật lại trong Cài đặt → Thông báo.</p>;
-  }
 
-  const toggle = async () => {
+  const toggle = async (on: boolean) => {
     setBusy(true);
     setProblem(null);
     try {
-      if (status === "on") {
+      if (on) {
+        setStatus(await turnOn());
+      } else {
         await turnOffPush();
         setStatus("off");
-      } else {
-        setStatus(await turnOn());
       }
     } catch (error) {
       setProblem(error instanceof Error ? error.message : "Chưa bật được thông báo");
@@ -43,13 +36,33 @@ export function PushToggle({ offerOnly = false }: { offerOnly?: boolean }) {
     }
   };
 
+  // Why it cannot be switched here, or what went wrong.
+  const note =
+    status === "unsupported"
+      ? "Thêm app vào màn hình chính (Chia sẻ → Thêm vào MH chính), mở từ đó rồi bật. Cần iOS 16.4 trở lên."
+      : status === "blocked"
+        ? "Đang bị chặn. Bật lại trong Cài đặt → Thông báo của điện thoại."
+        : problem;
+
   return (
-    <>
-      <label className="check">
-        <input type="checkbox" checked={status === "on"} disabled={busy} onChange={() => void toggle()} />
-        Báo lên điện thoại khi có người chuyển tiền cho mình
-      </label>
-      {problem && <p className="hint">{problem}</p>}
-    </>
+    <div className={offerOnly ? "setting-row offer" : "setting-row"}>
+      {!offerOnly && (
+        <span className="setting-icon" aria-hidden="true">
+          <Icon name="bell" className="small" />
+        </span>
+      )}
+      <span className="row-main">
+        <span id={labelId} className="row-title">
+          {offerOnly ? "Báo khi có người chuyển tiền" : "Bật thông báo"}
+        </span>
+        <span className="row-sub">{note ?? (offerOnly ? "Điện thoại sẽ đổ chuông" : "Báo khi có người chuyển tiền cho bạn")}</span>
+      </span>
+      <GlassSwitch
+        checked={status === "on"}
+        disabled={busy || status === "unsupported" || status === "blocked"}
+        onChange={(on) => void toggle(on)}
+        labelledBy={labelId}
+      />
+    </div>
   );
 }

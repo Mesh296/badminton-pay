@@ -8,7 +8,7 @@ import { Balances } from "./screens/balances";
 import { HistoryStats } from "./screens/history-stats";
 import { MemberDetail } from "./screens/member-detail";
 import { PaymentReturnPrompt } from "./screens/payment-return-prompt";
-import { Members } from "./screens/members";
+import { Settings } from "./screens/members";
 import { SessionForm } from "./screens/session-form";
 import { TransferForm } from "./screens/transfer-form";
 import { TabBar, type Tab } from "./tab-bar";
@@ -22,7 +22,7 @@ const TABS: Tab[] = [
   { href: "#/", key: "", label: "Số dư", icon: "wallet" },
   { href: "#/history", key: "history", label: "Lịch sử", icon: "history" },
   { href: "#/notifications", key: "notifications", label: "Thông báo", icon: "bell" },
-  { href: "#/members", key: "members", label: "Thành viên", icon: "users" },
+  { href: "#/members", key: "members", label: "Cài đặt", icon: "settings" },
 ];
 
 const NOTICE_MS = 6000;
@@ -44,7 +44,7 @@ function screenFor(route: string[]): { title: string; body: ReactNode; tab: stri
     return { title: "Chuyển khoản", body: <TransferForm id={Number(param)} />, tab: "history", sub: true };
   }
   if (section === "history") return { title: "Lịch sử", body: <HistoryStats />, tab: "history", sub: false };
-  if (section === "members") return { title: "Thành viên", body: <Members />, tab: "members", sub: false };
+  if (section === "members") return { title: "Cài đặt", body: <Settings />, tab: "members", sub: false };
   if (section === "notifications") return { title: "Thông báo", body: <ActivityFeed />, tab: "notifications", sub: false };
   return { title: "Tiền cầu lông", body: <Balances />, tab: "", sub: false };
 }

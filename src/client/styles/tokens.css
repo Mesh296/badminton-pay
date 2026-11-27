@@ -17,7 +17,7 @@
   --hairline: #e6e6e6;
   --chip: #ebebeb;
   --violet: #5e4ed0; /* the icon's violet, deep enough for small text on white (6:1) */
-  --red: #c0392b;
+  --red: #d70015; /* iOS's high-contrast red: 5.4:1 on white, readable as button text */
 
   /* Semantic roles */
   --bg: var(--canvas);
@@ -34,6 +34,9 @@
   --accent-soft: rgb(94 78 208 / 0.12); /* violet wash: avatars, the summary card, the current tab's pill */
   --on-accent: var(--white);
   --danger: var(--red); /* errors and destructive actions only */
+  /* Switches, as on iPhone: green when on, translucent gray when off */
+  --switch-on: #34c759;
+  --switch-off: rgb(120 120 128 / 0.16);
   --disabled: #d9d9d9;
   --qr-tile: #ffffff; /* stays white in both themes so bank apps can scan the code */
 
@@ -154,9 +157,11 @@
     --chip: #2a2a2c;
     --violet: #a99cf6;
     --accent-soft: rgb(169 156 246 / 0.16);
-    --red: #ff8a80;
+    --red: #ff6961; /* iOS's high-contrast red for dark backgrounds: 6:1 on the dark card */
 
     --fill: var(--chip); /* fields need to stand off the dark card */
+    --switch-on: #30d158;
+    --switch-off: rgb(120 120 128 / 0.32);
     --on-primary: #111111; /* text on the now-white primary buttons */
     --on-accent: #111111;
     --disabled: #333335;
