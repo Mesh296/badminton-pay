@@ -6,3 +6,5 @@ GOOGLE_CLIENT_SECRET=
 SESSION_SECRET=
 # Comma-separated Google emails that may manage members and fix any entry.
 ADMIN_EMAILS=
+# Push notifications (optional). One JSON line from: node scripts/generate-vapid-key.mjs
+VAPID_KEY=

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { LOGIN_URL } from "./api";
 import { useApp } from "./app-context";
+import { turnOffPush } from "./push-notifications";
+import { PushToggle } from "./push-toggle";
 import { MemberForm } from "./screens/member-form";
 
 // Who is signed in, with the way in or out. Signing in is what unlocks adding
@@ -22,7 +24,12 @@ export function AccountCard() {
   }
 
   const signOut = (
-    <button type="button" className="button secondary" onClick={() => void write("POST", "/api/auth/logout")}>
+    <button
+      type="button"
+      className="button secondary"
+      // This phone stops ringing for this member before the next person signs in on it.
+      onClick={() => void turnOffPush().then(() => write("POST", "/api/auth/logout"))}
+    >
       Đăng xuất
     </button>
   );
@@ -40,6 +47,7 @@ export function AccountCard() {
             {me.admin && " · quản trị"}
           </p>
         </div>
+        <PushToggle />
         <div className="row-buttons">
           <button type="button" className="button secondary" onClick={() => setEditing(true)}>
             Sửa thông tin

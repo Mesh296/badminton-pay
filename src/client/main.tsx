@@ -7,6 +7,7 @@ import "@fontsource/be-vietnam-pro/600.css";
 import "@fontsource/be-vietnam-pro/700.css";
 import "./styles.css";
 import App from "./app.tsx";
+import { registerServiceWorker } from "./push-notifications";
 
 // Turn on lens refraction where it works. An SVG filter inside backdrop-filter
 // renders only in Chromium; Safari parses it and then draws nothing at all, so
@@ -17,6 +18,9 @@ if (brands?.some((entry) => entry.brand === "Chromium")) document.documentElemen
 // bends a copy of the tabs instead (base.css). The copy is tuned to how WebKit
 // sizes filters, so other engines get plain glass.
 else if (navigator.vendor === "Apple Computer, Inc.") document.documentElement.dataset.bend = "";
+
+// Only for notifications: it caches nothing, so updates still arrive on the next open.
+registerServiceWorker();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

@@ -1,9 +1,11 @@
 import { Hono, type Context } from "hono";
+import { formatMoney } from "../shared/money";
 import type { Me, TransferSnapshot } from "../shared/types";
 import { logActivity } from "./activity-log";
 import { intParam, membersExist, readBody } from "./http-helpers";
 import type { AppEnv } from "./index";
 import { transferFromRow, type TransferRow } from "./load-state";
+import { notifyMember } from "./routes-push";
 import { isReceiver, notReceiver } from "./routes-transfers";
 import { transferSchema } from "./validation";
 
@@ -33,10 +35,17 @@ claimRoutes.post("/", async (c) => {
     return c.json({ error: "Có thành viên không tồn tại" }, 400);
   }
   const row = await c.env.DB.prepare(
-    "INSERT INTO transfer_claims (date, from_id, to_id, amount, note) VALUES (?, ?, ?, ?, ?) RETURNING id",
+    `INSERT INTO transfer_claims (date, from_id, to_id, amount, note) VALUES (?, ?, ?, ?, ?)
+     RETURNING id, (SELECT name FROM members WHERE id = from_id) AS payer`,
   )
     .bind(body.date, body.fromId, body.toId, body.amount, body.note)
-    .first<{ id: number }>();
+    .first<{ id: number; payer: string }>();
+  // The receiver's phone rings, so they know to look at their account.
+  notifyMember(c, body.toId, {
+    title: `${row!.payer} báo đã chuyển ${formatMoney(body.amount)}`,
+    body: "Mở app để xác nhận đã nhận",
+    url: "/",
+  });
   return c.json({ id: row!.id }, 201);
 });
 

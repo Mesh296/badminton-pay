@@ -3,6 +3,11 @@
 
 export const ROUND_TO = 1000;
 
+const numberFormat = new Intl.NumberFormat("vi-VN");
+
+/** 85000 -> "85.000đ" */
+export const formatMoney = (amount: number) => `${numberFormat.format(amount)}đ`;
+
 /** Largest single amount the app accepts (court, drinks, or one transfer). */
 export const MAX_AMOUNT = 100_000_000;
 

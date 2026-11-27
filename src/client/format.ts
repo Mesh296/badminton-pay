@@ -2,10 +2,9 @@ import { MAX_AMOUNT } from "../shared/money";
 
 // Display helpers for money and dates (Vietnamese locale).
 
-const numberFormat = new Intl.NumberFormat("vi-VN");
+export { formatMoney } from "../shared/money";
 
-/** 85000 -> "85.000đ" */
-export const formatMoney = (amount: number) => `${numberFormat.format(amount)}đ`;
+const numberFormat = new Intl.NumberFormat("vi-VN");
 
 // Money is typed in thousands of dong: "100" means 100.000đ. Amounts are
 // still stored and shown as full dong everywhere else.

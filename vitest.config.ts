@@ -7,6 +7,9 @@ export default defineConfig({
   plugins: [
     cloudflareTest(async () => {
       const migrations = await readD1Migrations(path.join(import.meta.dirname, "migrations"));
+      // A throwaway VAPID key, so push notifications are on in tests.
+      const vapid = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]);
+      const { kty, crv, x, y, d } = await crypto.subtle.exportKey("jwk", vapid.privateKey);
       return {
         wrangler: { configPath: "./wrangler.jsonc" },
         miniflare: {
@@ -18,6 +21,7 @@ export default defineConfig({
             ADMIN_EMAILS: "admin@example.test",
             GOOGLE_CLIENT_ID: "test-client-id",
             GOOGLE_CLIENT_SECRET: "test-client-secret",
+            VAPID_KEY: JSON.stringify({ kty, crv, x, y, d }),
           },
         },
       };

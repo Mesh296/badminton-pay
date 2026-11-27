@@ -107,6 +107,7 @@
 .hero-amount { font-size: var(--text-display); font-weight: 700; line-height: 1.1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
 .hero .button { margin-top: var(--sp-16); }
 .hero .avatar { margin-bottom: var(--sp-8); background: var(--surface); }
+.hero .check { justify-self: center; text-align: left; }
 /* White QR tile with a hairline ring, so it reads as an object on the white card */
 .qr { justify-self: center; max-width: 100%; height: auto; padding: var(--sp-8); border-radius: 20px; background: var(--qr-tile); box-shadow: 0 0 0 1px var(--line); }
 .account { color: var(--muted); font-size: var(--text-small); text-align: center; overflow-wrap: anywhere; }

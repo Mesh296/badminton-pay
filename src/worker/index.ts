@@ -4,6 +4,7 @@ import { resolveActor } from "./auth-session";
 import { loadState } from "./load-state";
 import { authRoutes } from "./routes-auth";
 import { claimRoutes } from "./routes-claims";
+import { pushRoutes } from "./routes-push";
 import { memberRoutes } from "./routes-members";
 import { joinRoutes, profileRoutes } from "./routes-self-service";
 import { sessionRoutes } from "./routes-sessions";
@@ -46,6 +47,7 @@ app.route("/api/profile", profileRoutes);
 app.route("/api/sessions", sessionRoutes);
 app.route("/api/transfers", transferRoutes);
 app.route("/api/claims", claimRoutes);
+app.route("/api/push", pushRoutes);
 
 // Only /api/* reaches the Worker, so any unmatched path here is an unknown API route.
 app.notFound((c) => c.json({ error: "Không tìm thấy" }, 404));

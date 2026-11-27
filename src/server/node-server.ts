@@ -23,6 +23,7 @@ const env = {
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ?? "",
   SESSION_SECRET: process.env.SESSION_SECRET ?? "",
   ADMIN_EMAILS: process.env.ADMIN_EMAILS ?? "",
+  VAPID_KEY: process.env.VAPID_KEY ?? "",
 } as unknown as Env;
 
 const server = new Hono();
