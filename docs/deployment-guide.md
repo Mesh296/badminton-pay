@@ -76,7 +76,9 @@ Lần đầu Caddy mất khoảng nửa phút để xin chứng chỉ. File `.en
 
 Sau đó: mở app → tab **Thành viên** → **Đăng nhập Google** bằng email quản trị, điền tên của bạn rồi bấm **Vào nhóm** (quản trị vào thẳng, không cần duyệt).
 
-Thành viên khác tự làm đúng như vậy: đăng nhập Google, điền tên và số tài khoản, bấm **Vào nhóm**. Yêu cầu của họ hiện ở đầu tab **Thành viên** của quản trị; bấm **Duyệt** là họ dùng được. Bạn không phải gõ email của ai. Vẫn có thể thêm tay một người và điền email cho họ bằng **Thêm thành viên**.
+Thành viên khác tự làm đúng như vậy: đăng nhập Google, điền tên và số tài khoản, bấm **Vào nhóm**. Yêu cầu của họ hiện ở đầu tab **Thành viên** của quản trị; bấm **Thêm mới** là họ dùng được. Bạn không phải gõ email của ai. Vẫn có thể thêm tay một người và điền email cho họ bằng **Thêm thành viên**.
+
+Nếu đã thêm tay một người từ trước (chưa có email) và giờ người đó đăng nhập xin vào nhóm, đừng bấm **Thêm mới** (sẽ thành 2 người). Chọn tên họ ở ô **Gộp vào…** ngay dưới yêu cầu: email được gắn vào người cũ, giữ nguyên tên, các buổi và số dư; số tài khoản trong yêu cầu chỉ được điền khi người cũ chưa có.
 
 ## 6. Kiểm tra
 

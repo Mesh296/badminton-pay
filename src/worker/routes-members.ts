@@ -20,17 +20,26 @@ async function emailTaken(db: D1Database, email: string | null, exceptId = 0): P
   return row !== null;
 }
 
+// Run after a write that may have put an email on a member: that person's
+// request to join is answered, so it leaves the admins' list.
+const dropAnsweredRequests = (db: D1Database) =>
+  db.prepare("DELETE FROM join_requests WHERE email IN (SELECT email FROM members WHERE email IS NOT NULL)");
+
 memberRoutes.post("/", async (c) => {
   const body = await readBody(c, memberSchema);
   if (body instanceof Response) return body;
   if (await emailTaken(c.env.DB, body.email)) return c.json({ error: "Email đã gắn với người khác" }, 400);
 
-  const row = await c.env.DB.prepare(
-    "INSERT INTO members (name, bank_code, account_no, account_name, active, email) VALUES (?, ?, ?, ?, ?, ?) RETURNING id",
-  )
-    .bind(body.name, body.bankCode, body.accountNo, body.accountName, body.active ? 1 : 0, body.email)
-    .first<{ id: number }>();
-  return c.json({ id: row!.id }, 201);
+  const db = c.env.DB;
+  const [inserted] = await db.batch<{ id: number }>([
+    db
+      .prepare(
+        "INSERT INTO members (name, bank_code, account_no, account_name, active, email) VALUES (?, ?, ?, ?, ?, ?) RETURNING id",
+      )
+      .bind(body.name, body.bankCode, body.accountNo, body.accountName, body.active ? 1 : 0, body.email),
+    dropAnsweredRequests(db),
+  ]);
+  return c.json({ id: inserted.results[0].id }, 201);
 });
 
 memberRoutes.put("/:id", async (c) => {
@@ -40,11 +49,15 @@ memberRoutes.put("/:id", async (c) => {
   if (body instanceof Response) return body;
   if (await emailTaken(c.env.DB, body.email, id)) return c.json({ error: "Email đã gắn với người khác" }, 400);
 
-  const result = await c.env.DB.prepare(
-    "UPDATE members SET name = ?, bank_code = ?, account_no = ?, account_name = ?, active = ?, email = ? WHERE id = ?",
-  )
-    .bind(body.name, body.bankCode, body.accountNo, body.accountName, body.active ? 1 : 0, body.email, id)
-    .run();
+  const db = c.env.DB;
+  const [result] = await db.batch([
+    db
+      .prepare(
+        "UPDATE members SET name = ?, bank_code = ?, account_no = ?, account_name = ?, active = ?, email = ? WHERE id = ?",
+      )
+      .bind(body.name, body.bankCode, body.accountNo, body.accountName, body.active ? 1 : 0, body.email, id),
+    dropAnsweredRequests(db),
+  ]);
   if (result.meta.changes === 0) return c.json({ error: "Không tìm thấy thành viên" }, 404);
   return c.json({ id });
 });

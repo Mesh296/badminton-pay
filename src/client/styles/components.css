@@ -87,6 +87,9 @@
 .chevron { color: var(--subtle); }
 .plain { display: grid; gap: var(--sp-8); }
 .split { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-12); }
+/* One request to join: who, then the choice of a member it already is */
+.join-request { display: grid; gap: var(--sp-12); }
+.join-request + .join-request { padding-top: var(--sp-12); border-top: 1px solid var(--line); }
 
 /* Cards */
 .card, .hero { display: grid; gap: var(--sp-16); padding: var(--sp-24); }

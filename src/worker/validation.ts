@@ -66,6 +66,9 @@ export const memberSchema = z.object({
 // What a person may say about themself: asking to join, or editing their own details.
 export const profileSchema = memberSchema.pick({ name: true, bankCode: true, accountNo: true, accountName: true });
 
+// Which existing member a join request is.
+export const linkSchema = z.object({ memberId });
+
 export const sessionSchema = z
   .object({
     date,

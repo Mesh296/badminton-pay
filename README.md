@@ -43,7 +43,7 @@ Deploy, đăng nhập Google, cập nhật, sao lưu:
 - Lỡ nhập sai: bấm vào buổi hoặc khoản chuyển trong tab Lịch sử để sửa hoặc xóa (người ứng, người nhận, hoặc quản trị).
 - Nhật ký (tab Lịch sử → Nhật ký) ghi ai thêm, sửa, xóa buổi hay chuyển khoản, lúc nào, trước và sau; ai cũng xem được, thay đổi đụng tới mình có chữ "Có bạn", thứ bị xóa khôi phục được.
 - Thành viên tự sửa tên và số tài khoản của mình.
-- Quản trị (email trong `ADMIN_EMAILS`) làm được mọi việc: duyệt người xin vào, thêm tay thành viên, gắn email.
+- Quản trị (email trong `ADMIN_EMAILS`) làm được mọi việc: duyệt người xin vào (thêm mới, hoặc gộp vào người đã thêm tay trước mà chưa có email), thêm tay thành viên, gắn email.
 
 ## Cấu trúc
 
