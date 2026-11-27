@@ -8,6 +8,7 @@ import { HistoryStats } from "./screens/history-stats";
 import { MemberDetail } from "./screens/member-detail";
 import { Members } from "./screens/members";
 import { SessionForm } from "./screens/session-form";
+import { TransferForm } from "./screens/transfer-form";
 import { TabBar, type Tab } from "./tab-bar";
 import { useAppState } from "./use-app-state";
 import { goBack, useHashRoute } from "./use-hash-route";
@@ -34,6 +35,9 @@ function screenFor(route: string[]): { title: string; body: ReactNode; tab: stri
       tab: isNew ? "" : "history",
       sub: true,
     };
+  }
+  if (section === "transfer") {
+    return { title: "Chuyển khoản", body: <TransferForm id={Number(param)} />, tab: "history", sub: true };
   }
   if (section === "history") return { title: "Lịch sử", body: <HistoryStats />, tab: "history", sub: false };
   if (section === "members") return { title: "Thành viên", body: <Members />, tab: "members", sub: false };

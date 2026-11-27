@@ -38,6 +38,17 @@ function sessionChanges(before: SessionSnapshot, after: SessionSnapshot, nameOf:
   return parts.join(" · ") || "không đổi gì";
 }
 
+/** What a fix to a transfer changed, e.g. "40.000đ → 50.000đ". */
+function transferChanges(before: TransferSnapshot, after: TransferSnapshot, nameOf: (id: number) => string): string {
+  const parts: string[] = [];
+  if (before.amount !== after.amount) parts.push(`${formatMoney(before.amount)} → ${formatMoney(after.amount)}`);
+  if (before.date !== after.date) parts.push(`ngày ${formatDayMonth(before.date)} → ${formatDayMonth(after.date)}`);
+  if (before.fromId !== after.fromId) parts.push(`người chuyển ${nameOf(before.fromId)} → ${nameOf(after.fromId)}`);
+  if (before.toId !== after.toId) parts.push(`người nhận ${nameOf(before.toId)} → ${nameOf(after.toId)}`);
+  if (before.note !== after.note) parts.push("sửa ghi chú");
+  return parts.join(" · ") || "không đổi gì";
+}
+
 /** Members a change touches: the payer and attendees, or both ends of a transfer. */
 function membersIn(entry: ActivityEntry): Set<number> {
   const ids = new Set<number>();
@@ -103,14 +114,15 @@ export function ActivityFeed() {
         };
       }
       case "transfer.create":
+      case "transfer.update":
       case "transfer.delete": {
         const { before, after } = entry;
         const transfer = (after ?? before)!;
         return {
           isTransfer: true,
-          title: `${who} ${entry.action === "transfer.create" ? "ghi" : "hủy"} ${nameOf(transfer.fromId)} → ${nameOf(transfer.toId)}`,
-          detail: formatMoney(transfer.amount),
-          restore: before && actsAs(before.toId) && !transferIsBack(before) ? () => restoreTransfer(before) : undefined,
+          title: `${who} ${{ "transfer.create": "ghi", "transfer.update": "sửa", "transfer.delete": "hủy" }[entry.action]} ${nameOf(transfer.fromId)} → ${nameOf(transfer.toId)}`,
+          detail: before && after ? transferChanges(before, after, nameOf) : formatMoney(transfer.amount),
+          restore: before && !after && actsAs(before.toId) && !transferIsBack(before) ? () => restoreTransfer(before) : undefined,
         };
       }
     }

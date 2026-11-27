@@ -54,7 +54,7 @@ export type ActivityEntry = {
   actorEmail?: string;
 } & (
   | { action: "session.create" | "session.update" | "session.delete"; before: SessionSnapshot | null; after: SessionSnapshot | null }
-  | { action: "transfer.create" | "transfer.delete"; before: TransferSnapshot | null; after: TransferSnapshot | null }
+  | { action: "transfer.create" | "transfer.update" | "transfer.delete"; before: TransferSnapshot | null; after: TransferSnapshot | null }
 );
 
 /** A signed-in person asking to join the group, waiting for an admin. */

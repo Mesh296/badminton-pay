@@ -34,18 +34,13 @@ export function HistoryStats() {
 }
 
 function History() {
-  const { state, nameOf, write, actsAs } = useApp();
+  const { state, nameOf } = useApp();
   const entries: Entry[] = [
     ...state.sessions.map((session) => ({ date: session.date, session })),
     ...state.transfers.map((transfer) => ({ date: transfer.date, transfer })),
   ].sort((a, b) => b.date.localeCompare(a.date));
 
   if (entries.length === 0) return <p className="empty">Chưa có buổi nào</p>;
-
-  const undo = (transfer: Transfer) => {
-    const line = `${nameOf(transfer.fromId)} → ${nameOf(transfer.toId)} ${formatMoney(transfer.amount)}`;
-    if (window.confirm(`Hủy chuyển khoản này?\n${line}`)) void write("DELETE", `/api/transfers/${transfer.id}`);
-  };
 
   return (
     <ul className="list surface">
@@ -67,24 +62,20 @@ function History() {
             </a>
           </li>
         ) : (
-          <li key={`t-${entry.transfer.id}`} className="list-row">
-            <span className="avatar symbol" aria-hidden="true">
-              <Icon name="transfer" className="small" />
-            </span>
-            <span className="row-main">
-              <span className="row-title">
-                {nameOf(entry.transfer.fromId)} → {nameOf(entry.transfer.toId)}
+          <li key={`t-${entry.transfer.id}`}>
+            {/* Opens the transfer, where its receiver or an admin can fix or delete it */}
+            <a className="list-row" href={`#/transfer/${entry.transfer.id}`}>
+              <span className="avatar symbol" aria-hidden="true">
+                <Icon name="transfer" className="small" />
               </span>
-              <span className="row-sub">Chuyển khoản · {formatDayMonth(entry.date)}</span>
-            </span>
-            <span className="row-end">
-              {formatMoney(entry.transfer.amount)}
-              {actsAs(entry.transfer.toId) && (
-                <button type="button" className="link" onClick={() => undo(entry.transfer)}>
-                  Hủy
-                </button>
-              )}
-            </span>
+              <span className="row-main">
+                <span className="row-title">
+                  {nameOf(entry.transfer.fromId)} → {nameOf(entry.transfer.toId)}
+                </span>
+                <span className="row-sub">Chuyển khoản · {formatDayMonth(entry.date)}</span>
+              </span>
+              <span className="row-end">{formatMoney(entry.transfer.amount)}</span>
+            </a>
           </li>
         ),
       )}

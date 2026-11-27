@@ -86,3 +86,38 @@ describe("activity log", () => {
     expect(activity[0].id).toBeGreaterThan(activity[1].id);
   });
 });
+
+describe("fixing a transfer", () => {
+  const transfer = { date: "2026-11-27", fromId: 0, toId: 0, amount: 50_000 };
+  let id = 0;
+  beforeEach(async () => {
+    Object.assign(transfer, { fromId: ids[0], toId: ids[1] });
+    id = ((await (await call("POST", "/api/transfers", transfer, BINH)).json()) as { id: number }).id;
+  });
+  const fix = (changes: Record<string, unknown>, as: string, target = id) =>
+    call("PUT", `/api/transfers/${target}`, { ...transfer, ...changes }, as);
+
+  it("lets the receiver correct the amount, date and payer, and logs before and after", async () => {
+    expect((await fix({ amount: 60_000, fromId: ids[2], date: "2026-11-26" }, BINH)).status).toBe(200);
+    expect((await getState()).transfers).toMatchObject([{ id, amount: 60_000, fromId: ids[2], toId: ids[1], date: "2026-11-26" }]);
+    const [entry] = (await getState()).activity;
+    expect(entry).toMatchObject({ action: "transfer.update", actorMemberId: ids[1], before: { amount: 50_000 }, after: { amount: 60_000 } });
+  });
+
+  it("refuses the payer, and a receiver handing the transfer to someone else", async () => {
+    expect((await fix({ amount: 1_000 }, AN)).status).toBe(403);
+    expect((await fix({ toId: ids[2] }, BINH)).status).toBe(403);
+    expect((await getState()).transfers[0].amount).toBe(50_000);
+  });
+
+  it("lets an admin change anything, including the receiver", async () => {
+    expect((await fix({ toId: ids[2], amount: 70_000 }, ADMIN)).status).toBe(200);
+    expect((await getState()).transfers[0]).toMatchObject({ toId: ids[2], amount: 70_000 });
+  });
+
+  it("answers 404 for a missing transfer and 400 for an invalid fix", async () => {
+    expect((await fix({}, ADMIN, id + 1000)).status).toBe(404);
+    expect((await fix({ amount: 0 }, BINH)).status).toBe(400);
+    expect((await fix({ fromId: ids[1] }, BINH)).status).toBe(400);
+  });
+});

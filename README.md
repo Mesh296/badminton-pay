@@ -39,6 +39,7 @@ Deploy, đăng nhập Google, cập nhật, sao lưu:
 - Xem thì không cần đăng nhập. Sửa thì đăng nhập một lần bằng Google, điền tên và số tài khoản để xin vào nhóm, rồi chờ quản trị bấm duyệt.
 - Thành viên chỉ nhập, sửa, xóa buổi do chính mình ứng tiền.
 - Chỉ người nhận tiền mới ghi nhận "Đã nhận", nên người nợ không tự xóa nợ được.
+- Lỡ nhập sai: bấm vào buổi hoặc khoản chuyển trong tab Lịch sử để sửa hoặc xóa (người ứng, người nhận, hoặc quản trị).
 - Nhật ký (tab Lịch sử → Nhật ký) ghi ai thêm, sửa, xóa buổi hay chuyển khoản, lúc nào, trước và sau; ai cũng xem được, thay đổi đụng tới mình có chữ "Có bạn", thứ bị xóa khôi phục được.
 - Thành viên tự sửa tên và số tài khoản của mình.
 - Quản trị (email trong `ADMIN_EMAILS`) làm được mọi việc: duyệt người xin vào, thêm tay thành viên, gắn email.

@@ -139,8 +139,8 @@ Nên gắn địa chỉ `@gmail.com`. Email công ty hay trường học có th�
 |---|---|
 | Chưa đăng nhập | Xem số dư, lịch sử, mã QR |
 | Đã đăng nhập, chưa được duyệt | Như trên, và gửi yêu cầu vào nhóm |
-| Thành viên | Nhập, sửa, xóa buổi do chính mình ứng tiền; bấm "Đã nhận" cho tiền người khác chuyển cho mình; sửa tên và số tài khoản của mình |
-| Quản trị | Mọi thứ ở trên cho bất kỳ ai, duyệt hoặc từ chối người xin vào, thêm và sửa thành viên, gắn email |
+| Thành viên | Nhập, sửa, xóa buổi do chính mình ứng tiền; bấm "Đã nhận", sửa hoặc xóa khoản người khác chuyển cho mình; sửa tên và số tài khoản của mình |
+| Quản trị | Mọi thứ ở trên cho bất kỳ ai (sửa, xóa mọi buổi và mọi khoản chuyển khi lỡ nhập sai), duyệt hoặc từ chối người xin vào, thêm và sửa thành viên, gắn email |
 
 Người nợ không tự bấm xóa nợ được: chỉ người nhận tiền (hoặc quản trị) mới ghi nhận đã nhận.
 

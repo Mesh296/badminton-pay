@@ -103,17 +103,19 @@ export function MemberDetail({ id }: { id: number }) {
           <h3 className="section-title">Chuyển khoản</h3>
           <ul className="list surface">
             {transfers.map((t) => (
-              <li key={t.id} className="list-row">
-                <span className="avatar symbol" aria-hidden="true">
-                  <Icon name="transfer" className="small" />
-                </span>
-                <span className="row-main">
-                  <span className="row-title">
-                    {t.fromId === id ? `Cho ${nameOf(t.toId)}` : `Từ ${nameOf(t.fromId)}`}
+              <li key={t.id}>
+                <a className="list-row" href={`#/transfer/${t.id}`}>
+                  <span className="avatar symbol" aria-hidden="true">
+                    <Icon name="transfer" className="small" />
                   </span>
-                  <span className="row-sub">{formatDate(t.date)}</span>
-                </span>
-                <span className="row-end">{formatMoney(t.amount)}</span>
+                  <span className="row-main">
+                    <span className="row-title">
+                      {t.fromId === id ? `Cho ${nameOf(t.toId)}` : `Từ ${nameOf(t.fromId)}`}
+                    </span>
+                    <span className="row-sub">{formatDate(t.date)}</span>
+                  </span>
+                  <span className="row-end">{formatMoney(t.amount)}</span>
+                </a>
               </li>
             ))}
           </ul>
