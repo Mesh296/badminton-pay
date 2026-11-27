@@ -122,7 +122,7 @@
   --blob-y: 1.34;
   --ease-bubble: cubic-bezier(0.34, 1.36, 0.64, 1);
   /* Lens travel between tabs: slower, accelerating out of rest and settling gently */
-  --glide: 320ms;
+  --glide: 240ms;
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 
   font-family: var(--font);

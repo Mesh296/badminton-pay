@@ -56,6 +56,11 @@
    (tab-bar.tsx adds .lens-landed), never on first paint. */
 .tabbar.lens-landed .tab-indicator::before,
 .tabbar.lens-landed .tab-indicator::after { animation: lens-land var(--land) backwards; }
+/* While landing, the squeeze alone moves the size: a size transition left running
+   underneath could surface when the squeeze ended (WebKit started it late, from
+   full size), making the bubble swell again after it had landed. */
+.tabbar.lens-landed .tab-indicator::before,
+.tabbar.lens-landed .tab-indicator::after { transition: opacity 150ms linear; }
 @keyframes lens-land {
   /* collapse: fast */
   0% { scale: calc(1 + 2 * var(--grow-x)) calc(1 + 2 * var(--grow-y)); animation-timing-function: cubic-bezier(0.3, 0, 0.4, 1); }
@@ -107,7 +112,7 @@
   --sy: calc(1 + 2 * var(--grow-y));
   transition: --sx var(--bubble) var(--ease-bubble), --sy var(--bubble) var(--ease-bubble);
 }
-:root[data-bend] .tabbar.lens-landed .tab-indicator { animation: lens-land-size var(--land) backwards; }
+:root[data-bend] .tabbar.lens-landed .tab-indicator { animation: lens-land-size var(--land) backwards; transition: none; }
 :root[data-bend] .tabbar.lens-landed .tab-indicator::before,
 :root[data-bend] .tabbar.lens-landed .tab-indicator::after { animation: none; }
 /* lens-land, expressed on the two numbers.
