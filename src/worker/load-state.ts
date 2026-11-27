@@ -1,4 +1,4 @@
-import type { AppState, Attendee, Me } from "../shared/types";
+import type { AppState, Attendee, JoinRequest, Me } from "../shared/types";
 
 interface MemberRow {
   id: number;
@@ -30,6 +30,35 @@ interface TransferRow {
   to_id: number;
   amount: number;
   note: string | null;
+}
+
+interface JoinRequestRow {
+  id: number;
+  email: string;
+  name: string;
+  bank_code: string | null;
+  account_no: string | null;
+  account_name: string | null;
+}
+
+/** Open join requests the account may see: every one for an admin, otherwise only its own. */
+async function loadJoinRequests(db: D1Database, actor: Me | null): Promise<JoinRequest[]> {
+  // Members who are not admins have nothing to see here; skip the query.
+  if (!actor || (!actor.admin && actor.memberId !== null)) return [];
+  const rows = await db
+    .prepare(
+      "SELECT id, email, name, bank_code, account_no, account_name FROM join_requests WHERE ? = 1 OR email = ? ORDER BY id",
+    )
+    .bind(actor.admin ? 1 : 0, actor.email)
+    .all<JoinRequestRow>();
+  return rows.results.map((row) => ({
+    id: row.id,
+    email: row.email,
+    name: row.name,
+    bankCode: row.bank_code,
+    accountNo: row.account_no,
+    accountName: row.account_name,
+  }));
 }
 
 /**
@@ -83,5 +112,6 @@ export async function loadState(db: D1Database, actor: Me | null): Promise<AppSt
       note: row.note,
     })),
     me: actor,
+    joinRequests: await loadJoinRequests(db, actor),
   };
 }

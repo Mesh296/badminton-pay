@@ -14,6 +14,7 @@ export async function clearTables() {
     env.DB.prepare("DELETE FROM transfers"),
     env.DB.prepare("DELETE FROM sessions"),
     env.DB.prepare("DELETE FROM members"),
+    env.DB.prepare("DELETE FROM join_requests"),
   ]);
 }
 

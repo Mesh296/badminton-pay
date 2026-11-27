@@ -4,13 +4,20 @@ import type { Member } from "../../shared/types";
 import { useApp } from "../app-context";
 
 interface Props {
-  member?: Member; // omitted when adding
-  onDone: () => void;
+  member?: Member; // omitted when adding or asking to join
+  /**
+   * admin: an admin adds or edits anyone, including the sign-in email.
+   * self: a member edits their own name and bank details.
+   * join: a signed-in person asks to join (an admin's own request joins at once).
+   */
+  mode?: "admin" | "self" | "join";
+  /** Called after a save or a cancel. Omit to show no cancel button. */
+  onDone?: () => void;
 }
 
-// Add or edit a member (admins only): name, the Google email they sign in
-// with, and optional bank details used for the VietQR code.
-export function MemberForm({ member, onDone }: Props) {
+// Name plus optional bank details used for the VietQR code. Admins also set
+// the Google email a member signs in with and whether they still play.
+export function MemberForm({ member, mode = "admin", onDone }: Props) {
   const { write } = useApp();
   const [name, setName] = useState(member?.name ?? "");
   const [bankCode, setBankCode] = useState(member?.bankCode ?? "");
@@ -34,11 +41,17 @@ export function MemberForm({ member, onDone }: Props) {
       email: email.trim() || null,
       active,
     };
-    const ok = member
-      ? await write("PUT", `/api/members/${member.id}`, body)
-      : await write("POST", "/api/members", body);
+    // The server ignores email and active outside admin mode.
+    const ok =
+      mode === "join"
+        ? await write("POST", "/api/join", body)
+        : mode === "self"
+          ? await write("PUT", "/api/profile", body)
+          : member
+            ? await write("PUT", `/api/members/${member.id}`, body)
+            : await write("POST", "/api/members", body);
     setSaving(false);
-    if (ok) onDone();
+    if (ok) onDone?.();
   };
 
   return (
@@ -48,6 +61,7 @@ export function MemberForm({ member, onDone }: Props) {
         <input type="text" value={name} maxLength={40} onChange={(e) => setName(e.target.value)} required />
       </label>
 
+      {mode === "admin" && (
       <label className="field">
         <span>Email Google để đăng nhập</span>
         <input
@@ -59,6 +73,7 @@ export function MemberForm({ member, onDone }: Props) {
           onChange={(e) => setEmail(e.target.value)}
         />
       </label>
+      )}
 
       <label className="field">
         <span>Ngân hàng</span>
@@ -95,7 +110,7 @@ export function MemberForm({ member, onDone }: Props) {
         />
       </label>
 
-      {member && (
+      {member && mode === "admin" && (
         <label className="check">
           <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
           <span>Còn chơi</span>
@@ -105,11 +120,13 @@ export function MemberForm({ member, onDone }: Props) {
       {bankIncomplete && <p className="muted">Cần cả ngân hàng và số tài khoản</p>}
 
       <div className="row-buttons">
-        <button type="button" className="button secondary" onClick={onDone}>
-          Hủy
-        </button>
+        {onDone && (
+          <button type="button" className="button secondary" onClick={onDone}>
+            Hủy
+          </button>
+        )}
         <button type="submit" className="button" disabled={saving || !name.trim() || bankIncomplete}>
-          {saving ? "Đang lưu…" : "Lưu"}
+          {saving ? "Đang lưu…" : mode === "join" ? "Vào nhóm" : "Lưu"}
         </button>
       </div>
     </form>

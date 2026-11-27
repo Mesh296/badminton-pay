@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { BANKS } from "../../shared/banks";
+import type { JoinRequest } from "../../shared/types";
 import { AccountCard } from "../account-card";
 import { useApp } from "../app-context";
 import { byName } from "../format";
@@ -10,15 +11,46 @@ import { MemberForm } from "./member-form";
 // Member list, with the sign-in card on top. Only admins see add/edit.
 // Members are deactivated, never deleted.
 export function Members() {
-  const { state, me } = useApp();
+  const { state, me, write } = useApp();
   const admin = Boolean(me?.admin);
   // member id being edited, "new" for the add form, null when closed
   const [open, setOpen] = useState<number | "new" | null>(null);
   const members = [...state.members].sort((a, b) => Number(b.active) - Number(a.active) || byName(a, b));
 
+  // Only admins receive other people's requests.
+  const requests = admin ? state.joinRequests : [];
+  const reject = (request: JoinRequest) => {
+    if (window.confirm(`Từ chối ${request.name} (${request.email})?`)) void write("DELETE", `/api/join/${request.id}`);
+  };
+
   return (
     <>
+      {requests.length > 0 && (
+        <section className="card surface">
+          <h3>Chờ duyệt</h3>
+          <ul className="plain">
+            {requests.map((request) => (
+              <li key={request.id} className="split">
+                <span className="row-main">
+                  <span className="row-title">{request.name}</span>
+                  <span className="row-sub">{request.email}</span>
+                </span>
+                <span className="row-end">
+                  <button type="button" className="link" onClick={() => reject(request)}>
+                    Từ chối
+                  </button>
+                  <button type="button" className="button small" onClick={() => void write("POST", `/api/join/${request.id}/approve`)}>
+                    Duyệt
+                  </button>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <AccountCard />
+
 
       {admin &&
         (open === "new" ? (

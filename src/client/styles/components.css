@@ -51,6 +51,8 @@
   text-align: center;
 }
 .button.big { width: 100%; }
+/* Inline action in a row; still a 44px touch target */
+.button.small { min-height: 44px; padding: 0 var(--sp-16); font-size: var(--text-small); }
 .button.secondary { min-height: 46px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); color: var(--text); }
 .button.danger { width: 100%; min-height: 46px; background: transparent; color: var(--danger); }
 .button:disabled { background: var(--disabled); box-shadow: none; color: var(--muted); cursor: not-allowed; }

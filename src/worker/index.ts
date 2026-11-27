@@ -4,6 +4,7 @@ import { resolveActor } from "./auth-session";
 import { loadState } from "./load-state";
 import { authRoutes } from "./routes-auth";
 import { memberRoutes } from "./routes-members";
+import { joinRoutes, profileRoutes } from "./routes-self-service";
 import { sessionRoutes } from "./routes-sessions";
 import { transferRoutes } from "./routes-transfers";
 
@@ -39,6 +40,8 @@ app.get("/api/state", async (c) => c.json(await loadState(c.env.DB, c.get("actor
 
 app.route("/api/auth", authRoutes);
 app.route("/api/members", memberRoutes);
+app.route("/api/join", joinRoutes);
+app.route("/api/profile", profileRoutes);
 app.route("/api/sessions", sessionRoutes);
 app.route("/api/transfers", transferRoutes);
 

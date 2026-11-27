@@ -36,6 +36,16 @@ export interface Transfer {
   note: string | null;
 }
 
+/** A signed-in person asking to join the group, waiting for an admin. */
+export interface JoinRequest {
+  id: number;
+  email: string;
+  name: string;
+  bankCode: string | null;
+  accountNo: string | null;
+  accountName: string | null;
+}
+
 /** The signed-in account. `memberId` is null until an admin links the email to a member. */
 export interface Me {
   email: string;
@@ -49,4 +59,6 @@ export interface AppState {
   transfers: Transfer[];
   /** null for a visitor who is not signed in. */
   me: Me | null;
+  /** Open requests to join: all of them for an admin, only their own for anyone else. */
+  joinRequests: JoinRequest[];
 }

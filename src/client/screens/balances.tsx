@@ -14,13 +14,32 @@ export function Balances() {
     .filter(({ member, balance }) => member.active || balance !== 0)
     .sort((a, b) => a.balance - b.balance || byName(a.member, b.member));
 
+  // The one next step for whoever is looking. The members tab holds the join
+  // form and, for admins, adding members and approving requests.
+  const waiting = state.joinRequests.length;
+  const next =
+    canAdd && state.members.length > 0
+      ? { href: "#/session/new", label: "Thêm buổi" }
+      : !me
+        ? { href: LOGIN_URL, label: "Đăng nhập" }
+        : me.admin
+          ? { href: "#/members", label: "Thêm thành viên" }
+          : { href: "#/members", label: waiting > 0 ? "Chờ duyệt" : "Xin vào nhóm" };
+  // Admins receive everyone's requests; tell them when some are waiting.
+  const waitingHint = me?.admin && waiting > 0 && (
+    <a className="hint" href="#/members">
+      {waiting} người chờ duyệt
+    </a>
+  );
+
   if (state.members.length === 0) {
     return (
       <div className="empty">
         <p>Chưa có thành viên</p>
-        <a className="button" href="#/members">
-          Thêm thành viên
+        <a className="button" href={next.href}>
+          {next.label}
         </a>
+        {waitingHint}
       </div>
     );
   }
@@ -32,18 +51,12 @@ export function Balances() {
       <section className="hero surface">
         <p className="eyebrow">{totalDebt > 0 ? "Cả nhóm còn nợ" : "Cả nhóm"}</p>
         <p className="hero-amount">{totalDebt > 0 ? formatMoney(totalDebt) : "Hết nợ"}</p>
-        {canAdd ? (
-          <a className="button secondary" href="#/session/new">
-            Thêm buổi
-          </a>
-        ) : (
-          !me && (
-            <a className="button secondary" href={LOGIN_URL}>
-              Đăng nhập
-            </a>
-          )
-        )}
+        <a className="button secondary" href={next.href}>
+          {next.label}
+        </a>
       </section>
+
+      {waitingHint}
 
       {/* Above the list, so the floating add button never covers it */}
       <p className="hint">Chạm tên để xem mã QR</p>

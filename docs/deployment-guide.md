@@ -74,7 +74,9 @@ docker compose logs -f        # Ctrl+C để thoát
 
 Lần đầu Caddy mất khoảng nửa phút để xin chứng chỉ. File `.env` chứa bí mật, không đưa vào git.
 
-Sau đó mở app → tab **Thành viên** → **Đăng nhập Google** bằng email quản trị → thêm từng thành viên kèm email Google của họ. Nhớ thêm cả chính bạn.
+Sau đó: mở app → tab **Thành viên** → **Đăng nhập Google** bằng email quản trị, điền tên của bạn rồi bấm **Vào nhóm** (quản trị vào thẳng, không cần duyệt).
+
+Thành viên khác tự làm đúng như vậy: đăng nhập Google, điền tên và số tài khoản, bấm **Vào nhóm**. Yêu cầu của họ hiện ở đầu tab **Thành viên** của quản trị; bấm **Duyệt** là họ dùng được. Bạn không phải gõ email của ai. Vẫn có thể thêm tay một người và điền email cho họ bằng **Thêm thành viên**.
 
 ## 6. Kiểm tra
 
@@ -127,7 +129,7 @@ Sửa `.env` rồi chạy `docker compose up -d`:
 - Đổi `ADMIN_EMAILS` để đổi danh sách quản trị.
 - Đổi `SESSION_SECRET` sang giá trị mới: mọi máy phải đăng nhập lại.
 
-Gỡ quyền một thành viên: quản trị xóa email khỏi tên người đó. Bỏ tick "Còn chơi" không gỡ quyền, để người đã nghỉ vẫn xác nhận được tiền người khác trả cho mình.
+Gỡ quyền một thành viên: quản trị xóa email khỏi tên người đó (người đó vẫn gửi lại yêu cầu được, và bạn từ chối được). Bỏ tick "Còn chơi" không gỡ quyền, để người đã nghỉ vẫn xác nhận được tiền người khác trả cho mình.
 
 Nên gắn địa chỉ `@gmail.com`. Email công ty hay trường học có thể bị thu hồi rồi cấp cho người khác, và người đó sẽ đăng nhập được với tên của thành viên cũ.
 
@@ -136,8 +138,9 @@ Nên gắn địa chỉ `@gmail.com`. Email công ty hay trường học có th�
 | Vai | Được làm |
 |---|---|
 | Chưa đăng nhập | Xem số dư, lịch sử, mã QR |
-| Thành viên | Nhập, sửa, xóa buổi do chính mình ứng tiền; bấm "Đã nhận" cho tiền người khác chuyển cho mình |
-| Quản trị | Mọi thứ ở trên cho bất kỳ ai, thêm và sửa thành viên, gắn email |
+| Đã đăng nhập, chưa được duyệt | Như trên, và gửi yêu cầu vào nhóm |
+| Thành viên | Nhập, sửa, xóa buổi do chính mình ứng tiền; bấm "Đã nhận" cho tiền người khác chuyển cho mình; sửa tên và số tài khoản của mình |
+| Quản trị | Mọi thứ ở trên cho bất kỳ ai, duyệt hoặc từ chối người xin vào, thêm và sửa thành viên, gắn email |
 
 Người nợ không tự bấm xóa nợ được: chỉ người nhận tiền (hoặc quản trị) mới ghi nhận đã nhận.
 

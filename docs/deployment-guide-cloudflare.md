@@ -34,7 +34,9 @@ npx wrangler secret put SESSION_SECRET     # dán kết quả của: openssl ran
 npx wrangler secret put ADMIN_EMAILS       # email Google của quản trị; nhiều người thì cách nhau dấu phẩy
 ```
 
-5. Mở app → tab **Thành viên** → **Đăng nhập Google** bằng email quản trị → thêm từng thành viên kèm email Google của họ. Nhớ thêm cả chính bạn.
+5. Mở app → tab **Thành viên** → **Đăng nhập Google** bằng email quản trị, điền tên của bạn rồi bấm **Vào nhóm** (quản trị vào thẳng, không cần duyệt).
+
+   Thành viên khác tự làm đúng như vậy: đăng nhập Google, điền tên và số tài khoản, bấm **Vào nhóm**. Yêu cầu của họ hiện ở đầu tab **Thành viên** của quản trị; bấm **Duyệt** là họ dùng được. Bạn không phải gõ email của ai. Vẫn có thể thêm tay một người và điền email cho họ bằng **Thêm thành viên**.
 
 Nếu Google từ chối thành viên vì app đang ở trạng thái thử nghiệm, vào **Audience** bấm **Publish app**.
 

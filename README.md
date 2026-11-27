@@ -35,10 +35,11 @@ Deploy, đăng nhập Google, cập nhật, sao lưu:
 
 ## Ai làm được gì
 
-- Xem thì không cần đăng nhập. Sửa thì đăng nhập một lần bằng Google.
+- Xem thì không cần đăng nhập. Sửa thì đăng nhập một lần bằng Google, điền tên và số tài khoản để xin vào nhóm, rồi chờ quản trị bấm duyệt.
 - Thành viên chỉ nhập, sửa, xóa buổi do chính mình ứng tiền.
 - Chỉ người nhận tiền mới ghi nhận "Đã nhận", nên người nợ không tự xóa nợ được.
-- Quản trị (email trong `ADMIN_EMAILS`) làm được mọi việc và là người thêm thành viên, gắn email Google cho từng người.
+- Thành viên tự sửa tên và số tài khoản của mình.
+- Quản trị (email trong `ADMIN_EMAILS`) làm được mọi việc: duyệt người xin vào, thêm tay thành viên, gắn email.
 
 ## Cấu trúc
 
@@ -55,4 +56,4 @@ Deploy, đăng nhập Google, cập nhật, sao lưu:
 
 > App tính tiền cầu lông của nhóm mình: `<địa-chỉ-app>`
 > Mở bằng Safari, bấm nút Chia sẻ → "Thêm vào MH chính" để có icon như app thường.
-> Ai cũng xem được số nợ của mình và quét QR để chuyển khoản. Muốn nhập buổi mình ứng tiền hoặc xác nhận đã nhận tiền thì vào tab Thành viên, đăng nhập Google một lần (gửi mình email Google của bạn trước).
+> Ai cũng xem được số nợ của mình và quét QR để chuyển khoản. Muốn nhập buổi mình ứng tiền hoặc xác nhận đã nhận tiền thì vào tab Thành viên, đăng nhập Google, điền tên và số tài khoản rồi bấm "Vào nhóm"; mình duyệt là dùng được.
