@@ -1,5 +1,5 @@
 /* Motion. Only opacity and transform-type properties animate. The one place
-   with a bounce is the tab-bar lens lifting and settling; everything else
+   with a bounce is the tab-bar lens lifting into a bubble; everything else
    eases without overshoot. Navigation chrome never animates as a whole. */
 
 /* Screen change, in two steps (use-screen-transition.ts adds .leaving and
@@ -40,9 +40,31 @@
    bubble and settles back with a soft bounce; while a finger drags it, it
    follows almost instantly. */
 .segmented::before { transition: transform var(--glide) var(--ease-in-out); }
-.tab-indicator { transition: translate var(--glide) var(--ease-in-out), scale var(--bubble) var(--ease-bubble); }
-.tabbar.lens-dragging .tab-indicator { transition: translate 90ms linear, scale var(--bubble) var(--ease-bubble); }
-.tab-indicator::before, .tab-indicator::after { transition: opacity var(--base) var(--ease); }
+/* A rule's transition applies when moving INTO that rule's state, so the two
+   directions can differ. Settling (these base rules): size and look ease down
+   together at one even pace, no bounce. */
+.tab-indicator, .lens-copy { transition: translate var(--glide) var(--ease-in-out); }
+/* The glass turns into the flat tint while it collapses, so the round blob is already the pill's colour. */
+.tab-indicator::before, .tab-indicator::after { transition: opacity 150ms linear, scale var(--bubble) var(--ease-in-out); }
+/* Lifting: the bubble swells with a soft bounce and the glass appears quickly. */
+.tabbar.lens-lifted .tab-indicator::before, .tabbar.lens-lifted .tab-indicator::after { transition: opacity var(--base) var(--ease), scale var(--bubble) var(--ease-bubble); }
+/* Landing, after the App Store's tab bar. The bubble collapses quickly into a
+   round blob, narrower and taller than the pill, as if its momentum carried it
+   inward; then it spreads out sideways and flattens into the pill, slowing as
+   it goes, with no rebound. Plays only after the lens has moved
+   (tab-bar.tsx adds .lens-landed), never on first paint. */
+.tabbar.lens-landed .tab-indicator::before,
+.tabbar.lens-landed .tab-indicator::after { animation: lens-land var(--land) both; }
+@keyframes lens-land {
+  /* collapse: fast */
+  0% { scale: calc(1 + 2 * var(--grow-x)) calc(1 + 2 * var(--grow-y)); animation-timing-function: cubic-bezier(0.3, 0, 0.4, 1); }
+  /* round blob; from here it spreads out: long, decelerating */
+  24% { scale: 0.78 1.34; animation-timing-function: cubic-bezier(0.2, 0.6, 0.2, 1); }
+  100% { scale: 1; }
+}
+/* While a finger drags it, the lens follows almost instantly; the copy inside moves against it in step. */
+.tabbar.lens-dragging .tab-indicator, .tabbar.lens-dragging .lens-copy { transition: translate 90ms linear; }
+/* The copy's window shows at once on lift and goes at once on landing, before the glass collapses away from it. */
 
 /* State changes ease instead of snapping */
 .button, .toggle, .segmented button, .round-button, .fab, .link, .list-row {
@@ -53,8 +75,37 @@
     opacity var(--fast) var(--ease),
     transform var(--fast) var(--ease);
 }
-/* A tab swells and settles with the same bounce as the lens over it */
-.tabbar a { transition: transform var(--bubble) var(--ease-bubble), color var(--base) var(--ease); }
+/* A tab swells with the lens's bounce and eases back down with it */
+.tabbar .tab { transition: transform var(--bubble) var(--ease-in-out), color var(--bubble) var(--ease-in-out); }
+.tabbar .tab[data-lens] { transition: transform var(--bubble) var(--ease-bubble), color var(--base) var(--ease); }
+/* Inside the bent copy nothing animates on its own: WebKit does not redraw a
+   filtered layer for a child's running transition, and showed a stale, warped
+   frame while the magnify played. The copy simply moves with the lens. */
+.tabbar .lens-copy .tab, .tabbar .lens-copy .tab[data-lens] { transition: none; }
+
+/* WebKit (data-bend): the lens and the copy inside it must never move by a
+   transition of their own. Safari hands a moving transform to the GPU, which
+   lifts the copy out of the bent layer, and the bend vanished for as long as
+   the lens moved. Instead the two position variables themselves are
+   transitioned (registered with @property below, so they interpolate); the
+   browser restyles both elements from them every frame, on the main thread,
+   with the bend applied and the two always in step. */
+:root[data-bend] .tabbar .lens-copy { transition: none; }
+/* Growing and shrinking the same way: --lift drives both the glass and the
+   copy's window (base.css), so they cannot drift apart as a GPU-run scale and
+   a main-thread clip would. The landing squeeze still plays on the glass alone,
+   after the window has gone. */
+:root[data-bend] .tabbar .tab-indicator { --lift: 0; transition: --lift var(--bubble) var(--ease-in-out); }
+:root[data-bend] .tabbar.lens-lifted .tab-indicator { --lift: 1; transition: --lift var(--bubble) var(--ease-bubble); }
+:root[data-bend] .tabbar .tab-indicator::before,
+:root[data-bend] .tabbar .tab-indicator::after { transition: opacity 150ms linear; }
+:root[data-bend] .tabbar.lens-lifted .tab-indicator::before,
+:root[data-bend] .tabbar.lens-lifted .tab-indicator::after { transition: opacity var(--base) var(--ease); }
+:root[data-bend] .tabbar { transition: --lens-x var(--glide) var(--ease-in-out), --copy-x var(--glide) var(--ease-in-out); }
+:root[data-bend] .tabbar.lens-dragging { transition: --lens-x 90ms linear, --copy-x 90ms linear; }
+@property --lens-x { syntax: "<length-percentage>"; inherits: true; initial-value: 0%; }
+@property --copy-x { syntax: "<length-percentage>"; inherits: true; initial-value: 0%; }
+@property --lift { syntax: "<number>"; inherits: true; initial-value: 0; }
 .field input, .field select { transition: box-shadow var(--base) var(--ease); }
 
 /* Hover, for devices with a pointer (phones have no hover; they get the press

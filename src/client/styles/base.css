@@ -103,7 +103,7 @@ main {
 /* The bar's glass body. Kept as its own layer instead of on .tabbar, because a
    backdrop-filter on the parent would stop the lens from seeing the page. */
 .tabbar-glass { position: absolute; inset: 0; border-radius: inherit; background: var(--glass-fill); }
-.tabbar a {
+.tabbar .tab {
   position: relative;
   z-index: 1;
   display: grid;
@@ -120,9 +120,9 @@ main {
   /* soft halo in the canvas color keeps labels readable over whatever scrolls behind the glass */
   text-shadow: 0 0 8px var(--bg), 0 0 2px var(--bg);
 }
-.tabbar a[aria-current="page"] { color: var(--text); }
+.tabbar .tab[aria-current="page"] { color: var(--text); }
 /* The tab under a lifted lens is magnified, as if seen through it */
-.tabbar a[data-lens] { color: var(--text); transform: scale(1.18); }
+.tabbar .tab[data-lens] { color: var(--text); transform: scale(1.18); }
 @media (hover: hover) {
   .tabbar a:hover { color: var(--text); }
 }
@@ -130,10 +130,13 @@ main {
 /* Selection lens. It fills the current tab's slot and sits above the icons.
    Two looks, cross-faded:
    - ::before, at rest: a flat tinted pill
-   - ::after, lifted (pressed, dragged or traveling): a clear glass bubble
-   Position and size use the separate `translate` and `scale` properties so
-   each can have its own timing (see motion.css). --lens-x comes from tab-bar.tsx. */
+   - ::after, lifted (pressed, dragged or traveling): a clear glass bubble that
+     grows past the bar's edge
+   The lens itself only moves; its two looks do the growing. --lens-x comes from tab-bar.tsx. */
 .tab-indicator {
+  /* How far the bubble grows past the slot on each side, as a fraction of the slot. */
+  --grow-x: 0.08;
+  --grow-y: 0.23;
   position: absolute;
   z-index: 2;
   top: 6px;
@@ -142,10 +145,9 @@ main {
   width: calc((100% - 12px) / 3);
   border-radius: var(--radius-pill);
   translate: var(--lens-x, 0%) 0;
-  scale: 1;
   pointer-events: none;
 }
-.tab-indicator::before, .tab-indicator::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.tab-indicator::before, .tab-indicator::after { content: ""; position: absolute; inset: 0; border-radius: inherit; scale: 1; }
 .tab-indicator::before { background: var(--glass-active); }
 .tab-indicator::after {
   background: var(--lens-fill);
@@ -154,15 +156,75 @@ main {
   box-shadow: var(--lens-rim), var(--lens-shadow);
   opacity: 0;
 }
-/* Lifted: the bubble grows past the bar's edge */
-.tabbar.lens-lifted .tab-indicator { scale: 1.16 1.46; }
+.tabbar.lens-lifted .tab-indicator::before,
+.tabbar.lens-lifted .tab-indicator::after { scale: calc(1 + 2 * var(--grow-x)) calc(1 + 2 * var(--grow-y)); }
 .tabbar.lens-lifted .tab-indicator::before { opacity: 0; }
 .tabbar.lens-lifted .tab-indicator::after { opacity: 1; }
+
+/* The copy of the tabs seen through the lens, used only in WebKit (data-bend,
+   set in main.tsx), where the real backdrop cannot be bent; hidden otherwise.
+   - .lens-view: the grown lens's box. Its opaque canvas hides the real tabs
+     beneath, and its clip always follows the glass's outline exactly (both are
+     animated with the same timing in motion.css), so no second outline shows.
+   - .lens-bend: bends everything inside it near the rim (#glass-bend)
+   - .lens-frame: a fixed, invisible box two lens widths past each side, so
+     WebKit sizes the filter the same wherever the copy has slid to (see
+     glass-refraction-filter.tsx)
+   - .lens-copy: the row of tabs, placed exactly over the real row and moved
+     against the lens (--copy-x) */
+.lens-view { display: none; }
+:root[data-bend] .lens-view {
+  /* Half the slot's height: the round ends of the resting pill */
+  --end: calc((var(--tabbar) - 12px) / 2);
+  display: block;
+  position: absolute;
+  inset: calc(var(--grow-y) * -100%) calc(var(--grow-x) * -100%);
+  background: var(--bg);
+  /* What Chromium's backdrop filter does to whatever is behind the glass: a little brighter and richer.
+     Without it the inside of the lens reads as flat grey, not glass. */
+  filter: var(--lens-backdrop);
+  /* Exactly the glass's outline at every moment: both are computed from --lift
+     (0 = the slot's pill at rest, 1 = fully grown), see motion.css. */
+  clip-path: inset(
+    calc((1 - var(--lift)) * var(--grow-y) / (1 + 2 * var(--grow-y)) * 100%)
+    calc((1 - var(--lift)) * var(--grow-x) / (1 + 2 * var(--grow-x)) * 100%)
+    round calc(var(--end) * (1 + 2 * var(--grow-x) * var(--lift))) / calc(var(--end) * (1 + 2 * var(--grow-y) * var(--lift)))
+  );
+  opacity: 0;
+}
+:root[data-bend] .tabbar.lens-lifted .lens-view { opacity: 1; }
+/* In WebKit the glass grows from --lift too, instead of from its own scale transition. */
+:root[data-bend] .tabbar .tab-indicator::before,
+:root[data-bend] .tabbar .tab-indicator::after {
+  scale: calc(1 + 2 * var(--grow-x) * var(--lift)) calc(1 + 2 * var(--grow-y) * var(--lift));
+}
+.lens-bend { position: absolute; inset: 0; filter: url(#glass-bend); }
+/* The bar's body and rim, copied: inset by the bar's padding. Only inset shadows, so nothing
+   reaches past the lens vertically and changes how WebKit sizes the filter. */
+.lens-copy-bar { position: absolute; inset: -6px; border-radius: 32px; background: var(--glass-fill); box-shadow: var(--glass-rim); }
+/* Must stay wider than the copy ever reaches (two slots) and match FRAME_SIDE. */
+.lens-frame { position: absolute; inset: 0 -200%; }
+.lens-copy {
+  position: absolute;
+  /* Undo the view's growth so the copy's slots sit exactly on the real slots. */
+  top: calc(var(--grow-y) / (1 + 2 * var(--grow-y)) * 100%);
+  left: calc(var(--grow-x) / (1 + 2 * var(--grow-x)) * 100%);
+  width: calc(300% / (1 + 2 * var(--grow-x)));
+  height: calc(100% / (1 + 2 * var(--grow-y)));
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  translate: var(--copy-x, 0%) 0;
+}
+
 /* Real refraction: bend what is behind the lens and the add button near their
    edges, using an SVG displacement filter (glass-refraction-filter.tsx). Only
    Chromium renders an SVG filter inside backdrop-filter; Safari accepts the
-   syntax and draws nothing, so main.tsx sets data-refract on Chromium only. */
+   syntax and draws nothing, so main.tsx sets data-refract on Chromium only.
+   In WebKit the lens bends the copy of the tabs above instead. */
 :root[data-refract] .tab-indicator::after { backdrop-filter: url(#glass-refract) var(--lens-backdrop); }
+/* In WebKit the glass needs no backdrop filter: the bent copy under it is what
+   shows through, and one less filtered layer is redrawn per frame. */
+:root[data-bend] .tab-indicator::after { -webkit-backdrop-filter: none; backdrop-filter: none; }
 :root[data-refract] .fab { backdrop-filter: url(#glass-refract) blur(var(--fab-blur)) saturate(160%); }
 
 /* Round clear-glass add button, centered just above the tab bar */

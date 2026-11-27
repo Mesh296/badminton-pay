@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type PointerEvent } from "react";
+import { useEffect, useState, type PointerEvent } from "react";
 import { cssVars } from "./css-vars";
 import { Icon, type IconName } from "./icons";
 import { navigate } from "./use-hash-route";
@@ -14,8 +14,17 @@ export interface Tab {
 const BAR_PADDING = 6;
 /** A press becomes a drag once the pointer has moved this far, in px. */
 const DRAG_THRESHOLD = 8;
-/** If the lens never reports the end of its travel, settle it after this long. */
-const SETTLE_FALLBACK_MS = 900;
+/**
+ * The bubble starts shrinking back to the flat pill this far into its glide,
+ * so it lands and settles in one motion instead of stopping first and
+ * shrinking afterwards.
+ */
+const SETTLE_AT = 0.45;
+
+/** Delay before settling, from the glide duration in tokens.css. */
+function settleDelayMs(): number {
+  return (parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--glide")) || 0) * SETTLE_AT;
+}
 
 /** A pointer that is down on the bar. `x` is null until it has moved enough to count as a drag. */
 interface Press {
@@ -41,18 +50,22 @@ export function TabBar({ tabs, activeIndex }: { tabs: Tab[]; activeIndex: number
   const [released, setReleased] = useState<{ index: number; from: number } | null>(null);
   // The tab the lens last came to rest on.
   const [settledIndex, setSettledIndex] = useState(current);
-  const lens = useRef<HTMLSpanElement>(null);
+  // True once the lens has been moved at least once. The landing animation is
+  // tied to it, so it does not play when the page first appears.
+  const [moved, setMoved] = useState(false);
 
   const lensIndex = press ? press.index : released && released.from === current ? released.index : current;
-  const following = press !== null && press.x !== null;
+  // Lens offset in px while it follows a dragging finger; null otherwise.
+  const dragX = press?.x ?? null;
+  const following = dragX !== null;
   const traveling = settledIndex !== lensIndex;
   const lifted = press !== null || traveling;
 
-  // The travel normally ends with the lens's transitionend. This timer covers
-  // the cases where that event never comes (e.g. the transition was cancelled).
+  // Once the finger is up and the lens is on its way, settle it part-way
+  // through the glide (see SETTLE_AT).
   useEffect(() => {
     if (!traveling || press) return;
-    const timer = window.setTimeout(() => setSettledIndex(lensIndex), SETTLE_FALLBACK_MS);
+    const timer = window.setTimeout(() => setSettledIndex(lensIndex), settleDelayMs());
     return () => window.clearTimeout(timer);
   }, [traveling, press, lensIndex]);
 
@@ -69,6 +82,7 @@ export function TabBar({ tabs, activeIndex }: { tabs: Tab[]; activeIndex: number
     if (event.pointerType === "mouse" && event.button !== 0) return;
     // Capture keeps the moves coming even when the finger leaves the bar.
     event.currentTarget.setPointerCapture(event.pointerId);
+    setMoved(true);
     // Not a drag yet: the lens glides to the pressed tab at its normal pace.
     setPress({ startX: event.clientX, x: null, index: slotAt(event.currentTarget, event.clientX).index });
   };
@@ -84,19 +98,21 @@ export function TabBar({ tabs, activeIndex }: { tabs: Tab[]; activeIndex: number
     const { index } = press;
     setPress(null);
     setReleased({ index, from: current });
-    // Already resting on the chosen tab (held until it arrived): no travel is
-    // left to wait for, so settle now.
-    const gliding = lens.current?.getAnimations().some((a) => (a as CSSTransition).transitionProperty === "translate");
-    if (!gliding) setSettledIndex(index);
     if (index !== current) navigate(tabs[index].href.slice(1));
   };
 
   return (
     <nav
-      className={`tabbar${lifted ? " lens-lifted" : ""}${following ? " lens-dragging" : ""}`}
+      className={`tabbar${lifted ? " lens-lifted" : moved ? " lens-landed" : ""}${following ? " lens-dragging" : ""}`}
       aria-label="Điều hướng chính"
       // Lens position: under the finger while dragging, otherwise on a tab's slot.
-      style={cssVars({ "--lens-x": following ? `${press.x}px` : `${lensIndex * 100}%` })}
+      // --copy-x moves the copy of the tabs inside the lens the opposite way by the
+      // same distance, so the copy stays lined up with the real tabs beneath it.
+      // (Percentages are of each element's own width: the copy spans all the slots.)
+      style={cssVars({
+        "--lens-x": dragX !== null ? `${dragX}px` : `${lensIndex * 100}%`,
+        "--copy-x": dragX !== null ? `${-dragX}px` : `${(-lensIndex * 100) / tabs.length}%`,
+      })}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -104,17 +120,34 @@ export function TabBar({ tabs, activeIndex }: { tabs: Tab[]; activeIndex: number
     >
       {/* The glass body and the lens are siblings, so the lens looks through to the page itself. */}
       <span className="tabbar-glass" aria-hidden="true" />
-      <span
-        ref={lens}
-        className="tab-indicator"
-        aria-hidden="true"
-        onTransitionEnd={(event) => {
-          if (event.propertyName === "translate" && !press) setSettledIndex(lensIndex);
-        }}
-      />
+      <span className="tab-indicator" aria-hidden="true">
+        {/* Where the browser cannot bend the real backdrop (WebKit), the lens shows
+            this copy of the tabs instead and bends the copy. */}
+        <span className="lens-view">
+          <span className="lens-bend">
+            <span className="lens-frame" />
+            <span className="lens-copy">
+              {/* The bar's own edge, so it shows and bends inside the lens where the lens bulges past it */}
+              <span className="lens-copy-bar" />
+              {tabs.map((tab, index) => (
+                <span
+                  key={tab.key}
+                  className="tab"
+                  aria-current={index === activeIndex ? "page" : undefined}
+                  data-lens={lifted && index === lensIndex ? "" : undefined}
+                >
+                  <Icon name={tab.icon} />
+                  <span>{tab.label}</span>
+                </span>
+              ))}
+            </span>
+          </span>
+        </span>
+      </span>
       {tabs.map((tab, index) => (
         <a
           key={tab.key}
+          className="tab"
           href={tab.href}
           draggable={false}
           aria-current={index === activeIndex ? "page" : undefined}

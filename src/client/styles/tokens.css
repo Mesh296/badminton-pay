@@ -112,9 +112,11 @@
   /* Lens lifting into a bubble and settling back: a soft bounce, like the
      "scale and bounce" Apple describes for interactive glass. */
   --bubble: 400ms;
+  /* Landing: the bubble collapses into a round blob, then spreads out into the pill. */
+  --land: 420ms;
   --ease-bubble: cubic-bezier(0.34, 1.36, 0.64, 1);
   /* Lens travel between tabs: slower, accelerating out of rest and settling gently */
-  --glide: 520ms;
+  --glide: 420ms;
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 
   font-family: var(--font);

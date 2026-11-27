@@ -13,6 +13,10 @@ import App from "./app.tsx";
 // CSS feature queries cannot be trusted here. userAgentData exists only in Chromium.
 const brands = (navigator as Navigator & { userAgentData?: { brands: { brand: string }[] } }).userAgentData?.brands;
 if (brands?.some((entry) => entry.brand === "Chromium")) document.documentElement.dataset.refract = "";
+// WebKit (Safari, and every browser on iPhone) cannot, so there the tab-bar lens
+// bends a copy of the tabs instead (base.css). The copy is tuned to how WebKit
+// sizes filters, so other engines get plain glass.
+else if (navigator.vendor === "Apple Computer, Inc.") document.documentElement.dataset.bend = "";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
