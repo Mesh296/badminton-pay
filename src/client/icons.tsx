@@ -32,6 +32,12 @@ const PATHS = {
       <circle cx="12" cy="12" r="3" />
     </>
   ),
+  camera: (
+    <>
+      <path d="M4 8h3l1.5-2.5h7L17 8h3v11H4z" />
+      <circle cx="12" cy="13.5" r="3.5" />
+    </>
+  ),
   pencil: (
     <>
       <path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z" />

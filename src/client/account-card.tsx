@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { LOGIN_URL } from "./api";
 import { useApp } from "./app-context";
+import { avatarFromFile } from "./avatar-photo";
 import { Icon } from "./icons";
 import { Avatar } from "./member-visuals";
 import { turnOffPush } from "./push-notifications";
@@ -11,8 +12,19 @@ import { MemberForm } from "./screens/member-form";
 // their avatar (tap it to edit their details) and their options; someone not
 // in the group yet asks to join here.
 export function AccountCard() {
-  const { state, me } = useApp();
+  const { state, me, write } = useApp();
   const [editing, setEditing] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const picker = useRef<HTMLInputElement>(null);
+
+  // A photo from the library (or the camera) becomes the member's avatar.
+  const setPhoto = async (file: File | undefined) => {
+    if (!file) return;
+    setUploading(true);
+    const image = await avatarFromFile(file).catch(() => null);
+    if (image) await write("PUT", "/api/avatars", { image });
+    setUploading(false);
+  };
 
   if (!me) {
     return (
@@ -32,10 +44,27 @@ export function AccountCard() {
     return (
       <>
         <section className="profile">
-          <button type="button" className="profile-avatar" onClick={() => setEditing(true)} aria-label="Sửa thông tin của bạn">
+          {/* iPhone offers its photo library, the camera, or files */}
+          <input
+            ref={picker}
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={(e) => {
+              void setPhoto(e.target.files?.[0]);
+              e.target.value = "";
+            }}
+          />
+          <button
+            type="button"
+            className={uploading ? "profile-avatar uploading" : "profile-avatar"}
+            onClick={() => picker.current?.click()}
+            disabled={uploading}
+            aria-label={member.avatar ? "Đổi ảnh đại diện" : "Chọn ảnh đại diện"}
+          >
             <Avatar member={member} size="large" />
             <span className="profile-edit" aria-hidden="true">
-              <Icon name="pencil" className="small" />
+              <Icon name="camera" className="small" />
             </span>
           </button>
           <h2>{member.name}</h2>
@@ -43,6 +72,11 @@ export function AccountCard() {
             {me.email}
             {me.admin && " · quản trị"}
           </p>
+          {member.avatar && (
+            <button type="button" className="link" onClick={() => void write("DELETE", "/api/avatars")}>
+              Xóa ảnh đại diện
+            </button>
+          )}
         </section>
 
         <ul className="list surface">

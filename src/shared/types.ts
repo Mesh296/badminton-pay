@@ -7,6 +7,8 @@ export interface Member {
   accountNo: string | null;
   accountName: string | null;
   active: boolean;
+  /** Version of their profile photo (ms), null without one: shown from /api/avatars/{id}?v={avatar} */
+  avatar: number | null;
   /** Google account linked to this member. Only sent to admins. */
   email?: string | null;
 }

@@ -126,7 +126,7 @@ describe("linking a request to a member added before they signed in", () => {
 
     const admin = await stateAs(ADMIN);
     expect(admin.joinRequests).toEqual([]);
-    expect(admin.members).toEqual([{ id, name: "Long", email: NEW, active: true, ...bank }]);
+    expect(admin.members).toEqual([{ id, name: "Long", email: NEW, active: true, avatar: null, ...bank }]);
     expect(admin.sessions[0].attendees[0].memberId).toBe(id);
     expect((await stateAs(NEW)).me).toEqual({ email: NEW, memberId: id, admin: false });
   });

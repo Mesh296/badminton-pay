@@ -1,7 +1,17 @@
 import { formatMoney } from "./format";
 
 /** Initial of the given name (the last word in Vietnamese names) on a quiet gray disc. */
-export function Avatar({ member, size = "" }: { member: { name: string }; size?: "" | "small" | "large" }) {
+export function Avatar({
+  member,
+  size = "",
+}: {
+  member: { id?: number; name: string; avatar?: number | null };
+  size?: "" | "small" | "large";
+}) {
+  // Their photo when they set one (the version in the address lets it be cached for good).
+  if (member.id !== undefined && member.avatar) {
+    return <img className={`avatar ${size}`} src={`/api/avatars/${member.id}?v=${member.avatar}`} alt="" />;
+  }
   const lastWord = member.name.trim().split(/\s+/).pop() ?? "";
   const initial = Array.from(lastWord)[0]?.toUpperCase() ?? "?";
   return (

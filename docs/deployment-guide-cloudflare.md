@@ -101,7 +101,7 @@ Tại thời điểm viết (11/2026): Workers 100.000 request/ngày, D1 5 tri�
 
 ## Bảo mật cần biết
 
-- Ai có địa chỉ app đều xem được tên, số dư và số tài khoản ngân hàng của thành viên. Email của thành viên chỉ quản trị thấy.
+- Ai có địa chỉ app đều xem được tên, ảnh đại diện, số dư và số tài khoản ngân hàng của thành viên. Email của thành viên chỉ quản trị thấy.
 - Mã QR do chính app tạo ngay trên máy, không qua dịch vụ nào. Nút "Mở app ngân hàng" thì đi qua trang `dl.vietqr.io` của VietQR (Casso): số tài khoản, tên chủ tài khoản, số tiền và nội dung đi qua dịch vụ đó; địa chỉ app thì không (app không gửi Referer sang trang khác). Trước khi bấm chuyển trong app ngân hàng, xem tên người nhận do ngân hàng hiện ra có đúng người không (app nhắc tên đúng ngay dưới nút).
 - Phiên đăng nhập là cookie có chữ ký, sống 1 năm. Mất máy thì đổi `SESSION_SECRET` để đăng xuất mọi người.
 - Quyền đã bó hẹp: buổi do người ứng (hoặc quản trị) ghi, chuyển khoản do người nhận (hoặc quản trị) ghi.

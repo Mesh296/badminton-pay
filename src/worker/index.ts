@@ -3,6 +3,7 @@ import type { Me } from "../shared/types";
 import { resolveActor } from "./auth-session";
 import { loadState } from "./load-state";
 import { authRoutes } from "./routes-auth";
+import { avatarRoutes } from "./routes-avatars";
 import { claimRoutes } from "./routes-claims";
 import { pushRoutes } from "./routes-push";
 import { memberRoutes } from "./routes-members";
@@ -48,6 +49,7 @@ app.route("/api/sessions", sessionRoutes);
 app.route("/api/transfers", transferRoutes);
 app.route("/api/claims", claimRoutes);
 app.route("/api/push", pushRoutes);
+app.route("/api/avatars", avatarRoutes);
 
 // Only /api/* reaches the Worker, so any unmatched path here is an unknown API route.
 app.notFound((c) => c.json({ error: "Không tìm thấy" }, 404));

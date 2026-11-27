@@ -8,6 +8,7 @@ interface MemberRow {
   account_name: string | null;
   active: number;
   email: string | null;
+  avatar: number | null;
 }
 export interface SessionRow {
   id: string;
@@ -121,7 +122,11 @@ async function loadJoinRequests(db: D1Database, actor: Me | null): Promise<JoinR
  */
 export async function loadState(db: D1Database, actor: Me | null): Promise<AppState> {
   const [members, sessions, attendees, transfers, claims, activity] = await db.batch([
-    db.prepare("SELECT id, name, bank_code, account_no, account_name, active, email FROM members ORDER BY id"),
+    db.prepare(
+      `SELECT id, name, bank_code, account_no, account_name, active, email,
+         (SELECT updated_at FROM member_avatars WHERE member_id = members.id) AS avatar
+       FROM members ORDER BY id`,
+    ),
     db.prepare(
       "SELECT id, date, payer_id, court_amount, drink_amount, note FROM sessions ORDER BY date DESC, rowid DESC",
     ),
@@ -146,6 +151,7 @@ export async function loadState(db: D1Database, actor: Me | null): Promise<AppSt
       accountNo: row.account_no,
       accountName: row.account_name,
       active: row.active === 1,
+      avatar: row.avatar,
       ...(actor?.admin ? { email: row.email } : {}),
     })),
     sessions: (sessions.results as SessionRow[]).map((row) => sessionFromRow(row, attendeesBySession.get(row.id) ?? [])),

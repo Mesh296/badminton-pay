@@ -12,6 +12,7 @@ export const sessionCookie = async (email: string) => `session=${await signSessi
 export async function clearTables() {
   await env.DB.batch([
     env.DB.prepare("DELETE FROM push_subscriptions"),
+    env.DB.prepare("DELETE FROM member_avatars"),
     env.DB.prepare("DELETE FROM transfer_claims"),
     env.DB.prepare("DELETE FROM transfers"),
     env.DB.prepare("DELETE FROM sessions"),

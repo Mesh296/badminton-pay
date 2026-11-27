@@ -95,7 +95,7 @@ describe("members and transfers", () => {
     const [id] = await addMembers(1);
     const good = { name: "Minh", bankCode: "970436", accountNo: "0123456789", accountName: "TRAN MINH", active: false };
     expect((await call("PUT", `/api/members/${id}`, good)).status).toBe(200);
-    expect((await getState()).members[0]).toEqual({ id, ...good });
+    expect((await getState()).members[0]).toEqual({ id, ...good, avatar: null });
 
     expect((await call("PUT", `/api/members/${id}`, { ...good, bankCode: "000000" })).status).toBe(400);
     expect((await call("PUT", `/api/members/${id}`, { ...good, name: "  " })).status).toBe(400);

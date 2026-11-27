@@ -222,7 +222,10 @@ fieldset:disabled .toggle.hours[data-present="true"] { opacity: 1; }
 .profile h2 { margin-top: var(--sp-8); font-size: var(--text-heading); line-height: 1.2; }
 .profile-avatar { position: relative; padding: 0; border: 0; border-radius: var(--radius-pill); background: none; }
 .profile-avatar .avatar.large { width: 96px; height: 96px; font-size: 40px; }
-/* Pencil badge: says the avatar opens the edit form */
+/* A photo fills the disc */
+img.avatar { object-fit: cover; }
+.profile-avatar.uploading { opacity: 0.5; }
+/* Camera badge: says the avatar picks a photo */
 .profile-edit { position: absolute; right: -2px; bottom: -2px; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: var(--on-primary); box-shadow: 0 0 0 3px var(--bg); }
 /* A settings row: icon tile, title and explanation, then a chevron or a switch */
 .setting-row { display: flex; align-items: center; gap: var(--sp-12); min-height: 64px; padding: var(--sp-8) 0; text-align: left; }
