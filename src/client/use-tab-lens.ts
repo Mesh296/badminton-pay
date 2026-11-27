@@ -45,8 +45,11 @@ export function useTabLens(tabs: Tab[], activeIndex: number) {
   // The tab chosen on release. The route changes a moment later; until it does,
   // the lens keeps heading there instead of flicking back to the old tab.
   const [released, setReleased] = useState<{ index: number; from: number } | null>(null);
-  // The tab the lens last came to rest on.
+  // The tab the lens last came to rest on, and whether it is resting there now.
+  // Kept apart: after a quick 2 -> 0 -> 2, the lens heads back to the tab it
+  // last rested on while still in flight, and must not count as landed.
   const [settledIndex, setSettledIndex] = useState(current);
+  const [resting, setResting] = useState(true);
   // During a tap's glide: false until the lens is halfway, so the tab it left
   // stays magnified until then and the tab it heads to only after (see below).
   const [pastHalf, setPastHalf] = useState(true);
@@ -64,10 +67,16 @@ export function useTabLens(tabs: Tab[], activeIndex: number) {
   if (released && released.from !== current) setReleased(null);
 
   const lensIndex = press ? press.index : released && released.from === current ? released.index : current;
+  // Any new target means the lens is off again, until the settle below.
+  const [target, setTarget] = useState(lensIndex);
+  if (lensIndex !== target) {
+    setTarget(lensIndex);
+    setResting(false);
+  }
   // Lens offset in px while it follows a dragging finger; null otherwise.
   const dragX = press?.x ?? null;
   const following = dragX !== null;
-  const traveling = settledIndex !== lensIndex;
+  const traveling = !resting || settledIndex !== lensIndex;
   const lifted = press !== null || traveling;
   // The tab seen magnified through the lens: the one under the finger while
   // dragging; on a glide, the one it left, then from halfway the one it heads to.
@@ -93,7 +102,10 @@ export function useTabLens(tabs: Tab[], activeIndex: number) {
   useEffect(() => {
     if (!traveling || press) return;
     const remaining = settleDelayMs() - (performance.now() - glideStart.current);
-    const timer = window.setTimeout(() => setSettledIndex(lensIndex), Math.max(0, remaining));
+    const timer = window.setTimeout(() => {
+      setSettledIndex(lensIndex);
+      setResting(true);
+    }, Math.max(0, remaining));
     return () => window.clearTimeout(timer);
   }, [traveling, press, lensIndex]);
 
@@ -111,7 +123,7 @@ export function useTabLens(tabs: Tab[], activeIndex: number) {
     // Capture keeps the moves coming even when the finger leaves the bar.
     event.currentTarget.setPointerCapture(event.pointerId);
     const { index } = slotAt(event.currentTarget, event.clientX);
-    setSqueeze(index !== settledIndex);
+    setSqueeze(traveling || index !== settledIndex);
     setPastHalf(false);
     // Not a drag yet: the lens glides to the pressed tab at its normal pace.
     setPress({ pointerId: event.pointerId, startX: event.clientX, x: null, index });
