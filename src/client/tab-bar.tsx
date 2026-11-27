@@ -1,4 +1,4 @@
-import { useEffect, useState, type PointerEvent } from "react";
+import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { cssVars } from "./css-vars";
 import { Icon, type IconName } from "./icons";
 import { navigate } from "./use-hash-route";
@@ -15,11 +15,12 @@ const BAR_PADDING = 6;
 /** A press becomes a drag once the pointer has moved this far, in px. */
 const DRAG_THRESHOLD = 8;
 /**
- * The bubble starts shrinking back to the flat pill this far into its glide,
- * so it lands and settles in one motion instead of stopping first and
- * shrinking afterwards.
+ * The bubble starts shrinking back to the flat pill this far into its glide.
+ * Late enough that a tap shows the glass bending the tabs it passes over for
+ * nearly the whole trip (the glide starts slowly, so an early landing hid it),
+ * early enough that the squeeze plays as it arrives instead of after a stop.
  */
-const SETTLE_AT = 0.45;
+const SETTLE_AT = 0.85;
 
 /** Delay before settling, from the glide duration in tokens.css. */
 function settleDelayMs(): number {
@@ -61,11 +62,19 @@ export function TabBar({ tabs, activeIndex }: { tabs: Tab[]; activeIndex: number
   const traveling = settledIndex !== lensIndex;
   const lifted = press !== null || traveling;
 
+  // When the lens last set off towards a tab. A tap starts the glide on
+  // touch-down, so the settle below is timed from here, not from the release.
+  const glideStart = useRef(0);
+  useEffect(() => {
+    glideStart.current = performance.now();
+  }, [lensIndex]);
+
   // Once the finger is up and the lens is on its way, settle it part-way
   // through the glide (see SETTLE_AT).
   useEffect(() => {
     if (!traveling || press) return;
-    const timer = window.setTimeout(() => setSettledIndex(lensIndex), settleDelayMs());
+    const remaining = settleDelayMs() - (performance.now() - glideStart.current);
+    const timer = window.setTimeout(() => setSettledIndex(lensIndex), Math.max(0, remaining));
     return () => window.clearTimeout(timer);
   }, [traveling, press, lensIndex]);
 
