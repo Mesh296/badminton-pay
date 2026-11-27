@@ -11,28 +11,45 @@ import { MoneyInput } from "../money-input";
 // until then. The receiver (or an admin) can also record money straight away,
 // for cash or when nobody reported it.
 
-/** Confirm or turn down one reported payment: for its receiver or an admin. */
+/**
+ * Confirm or turn down one reported payment: for its receiver or an admin.
+ * "Số tiền khác" records what actually arrived when it differs from the report.
+ */
 export function ClaimAnswer({ claim }: { claim: Transfer }) {
   const { write, nameOf } = useApp();
   const [saving, setSaving] = useState(false);
-  const answer = async (received: boolean) => {
-    if (!received && !window.confirm(`Báo ${nameOf(claim.fromId)} là chưa nhận được ${formatMoney(claim.amount)}?`)) {
+  const [other, setOther] = useState(false);
+  const [received, setReceived] = useState(claim.amount);
+
+  const answer = async (ok: boolean) => {
+    if (!ok && !window.confirm(`Báo ${nameOf(claim.fromId)} là chưa nhận được ${formatMoney(claim.amount)}?`)) {
       return;
     }
     setSaving(true);
-    await write(received ? "POST" : "DELETE", received ? `/api/claims/${claim.id}/confirm` : `/api/claims/${claim.id}`);
+    await (ok
+      ? write("POST", `/api/claims/${claim.id}/confirm`, other ? { amount: received } : undefined)
+      : write("DELETE", `/api/claims/${claim.id}`));
     setSaving(false);
   };
+
   return (
-    <div className="row-buttons">
-      <button type="button" className="button secondary" disabled={saving} onClick={() => void answer(false)}>
-        Chưa nhận
-      </button>
-      <button type="button" className="button" disabled={saving} onClick={() => void answer(true)}>
-        <Icon name="check" className="small" />
-        Đã nhận
-      </button>
-    </div>
+    <>
+      {other && <MoneyInput label="Số tiền thực nhận" value={received} onChange={setReceived} />}
+      <div className="row-buttons">
+        <button type="button" className="button secondary" disabled={saving} onClick={() => void answer(false)}>
+          Chưa nhận
+        </button>
+        <button type="button" className="button" disabled={saving || received <= 0} onClick={() => void answer(true)}>
+          <Icon name="check" className="small" />
+          {other ? "Xác nhận" : "Đã nhận"}
+        </button>
+      </div>
+      {!other && (
+        <button type="button" className="link" onClick={() => setOther(true)}>
+          Nhận số tiền khác?
+        </button>
+      )}
+    </>
   );
 }
 

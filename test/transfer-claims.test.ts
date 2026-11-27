@@ -120,3 +120,25 @@ describe("never counting the same payment twice", () => {
     expect(state.activity.map((a) => a.action)).not.toContain("claim.delete");
   });
 });
+
+describe("confirming what actually arrived", () => {
+  it("records the amount the receiver saw, which may differ from the report", async () => {
+    await report(45_000);
+    const [claim] = (await stateAs(null)).claims;
+    expect((await call("POST", `/api/claims/${claim.id}/confirm`, { amount: 40_000 }, RECEIVER)).status).toBe(201);
+    const state = await stateAs(null);
+    expect(state.transfers).toMatchObject([{ fromId: payer, toId: receiver, amount: 40_000 }]);
+    expect(state.activity[0]).toMatchObject({ action: "transfer.create", actorMemberId: receiver, after: { amount: 40_000 } });
+  });
+
+  it("rejects a bad amount and leaves the report waiting", async () => {
+    await report(45_000);
+    const [claim] = (await stateAs(null)).claims;
+    for (const body of [{ amount: 0 }, { amount: 1.5 }, { amount: "40000" }, "{not json"]) {
+      expect((await call("POST", `/api/claims/${claim.id}/confirm`, body, RECEIVER)).status).toBe(400);
+    }
+    const state = await stateAs(null);
+    expect(state.claims).toHaveLength(1);
+    expect(state.transfers).toEqual([]);
+  });
+});

@@ -111,6 +111,10 @@ export const sessionSchema = z
     }
   });
 
+// Confirming a reported payment: what actually arrived, when it differs from the report.
+// The body may be left out entirely.
+export const confirmSchema = z.object({ amount: amount.min(1, "Số tiền phải lớn hơn 0").optional() }).optional();
+
 export const transferSchema = z
   .object({
     date,

@@ -7,7 +7,7 @@ import type { AppEnv } from "./index";
 import { transferFromRow, type TransferRow } from "./load-state";
 import { notifyMember } from "./routes-push";
 import { isReceiver, notReceiver } from "./routes-transfers";
-import { transferSchema } from "./validation";
+import { confirmSchema, transferSchema } from "./validation";
 
 // "Đã chuyển": the payer reports a payment, and the receiver confirms it once
 // they see the money arrive. Only the confirmation records a transfer, so a
@@ -39,6 +39,19 @@ async function balanceOf(db: D1Database, memberId: number): Promise<number> {
     .bind(memberId)
     .first<{ balance: number }>();
   return row?.balance ?? 0;
+}
+
+/** The confirm body, which is optional: an empty request confirms the reported amount. */
+async function readOptionalBody(c: Context<AppEnv>) {
+  const raw = await c.req.text();
+  let data: unknown;
+  try {
+    data = raw ? JSON.parse(raw) : undefined;
+  } catch {
+    return c.json({ error: "Dữ liệu không hợp lệ" }, 400);
+  }
+  const parsed = confirmSchema.safeParse(data);
+  return parsed.success ? parsed.data : c.json({ error: parsed.error.issues[0]?.message ?? "Dữ liệu không hợp lệ" }, 400);
 }
 
 // Report a payment you made.
@@ -89,25 +102,31 @@ claimRoutes.post("/:id/confirm", async (c) => {
   const claim = await readClaim(db, id);
   if (!claim) return notFound(c);
   if (!isReceiver(c, claim.toId)) return notReceiver(c);
+  // The receiver records what reached their account, which may differ from
+  // what was reported (sent short, or more); the log keeps whose word it was.
+  const body = await readOptionalBody(c);
+  if (body instanceof Response) return body;
+  const received = body?.amount ?? claim.amount;
 
   const snapshot: TransferSnapshot = {
     date: claim.date,
     fromId: claim.fromId,
     toId: claim.toId,
-    amount: claim.amount,
+    amount: received,
     note: claim.note,
   };
   try {
     const [inserted] = await db.batch([
-      // The amount is read again inside the batch: if a second confirm got here
-      // first and the claim is gone, it is NULL, the insert fails and the whole
-      // batch rolls back, so one report never becomes two transfers.
+      // The claim is checked again inside the batch: if a second confirm got
+      // here first and the claim is gone, the amount is NULL, the insert fails
+      // and the whole batch rolls back, so one report never becomes two transfers.
       db
         .prepare(
           `INSERT INTO transfers (date, from_id, to_id, amount, note)
-           VALUES (?, ?, ?, (SELECT amount FROM transfer_claims WHERE id = ?), ?) RETURNING id`,
+           VALUES (?, ?, ?, (SELECT CASE WHEN EXISTS (SELECT 1 FROM transfer_claims WHERE id = ?) THEN ? END), ?)
+           RETURNING id`,
         )
-        .bind(claim.date, claim.fromId, claim.toId, id, claim.note),
+        .bind(claim.date, claim.fromId, claim.toId, id, received, claim.note),
       db.prepare("DELETE FROM transfer_claims WHERE id = ?").bind(id),
       logActivity(db, c.get("actor") as Me, "transfer.create", null, snapshot),
     ]);
