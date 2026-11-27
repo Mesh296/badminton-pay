@@ -28,15 +28,20 @@ function toSnapshot(id: string, input: SessionInput): SessionSnapshot {
     courtAmount: input.courtAmount,
     drinkAmount: input.drinkAmount,
     note: input.note,
-    attendees: input.attendees.map((a) => ({ memberId: a.memberId, drank: a.drank, share: shares.get(a.memberId)! })),
+    attendees: input.attendees.map((a) => ({
+      memberId: a.memberId,
+      drank: a.drank,
+      hours: a.hours,
+      share: shares.get(a.memberId)!,
+    })),
   };
 }
 
 function attendeeInserts(db: D1Database, session: SessionSnapshot): D1PreparedStatement[] {
   return session.attendees.map((attendee) =>
     db
-      .prepare("INSERT INTO session_attendees (session_id, member_id, drank, share) VALUES (?, ?, ?, ?)")
-      .bind(session.id, attendee.memberId, attendee.drank ? 1 : 0, attendee.share),
+      .prepare("INSERT INTO session_attendees (session_id, member_id, drank, hours, share) VALUES (?, ?, ?, ?, ?)")
+      .bind(session.id, attendee.memberId, attendee.drank ? 1 : 0, attendee.hours, attendee.share),
   );
 }
 

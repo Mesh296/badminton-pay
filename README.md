@@ -28,7 +28,8 @@ Deploy, đăng nhập Google, cập nhật, sao lưu:
 ## Cách tính tiền
 
 - Ô nhập tiền dùng đơn vị nghìn đồng: gõ `100` nghĩa là 100.000đ. Số tiền vẫn được lưu và hiển thị theo đồng.
-- Tiền sân + cầu chia đều cho người đi; tiền nước chia đều cho người uống.
+- Tiền sân + cầu chia cho người đi theo số giờ mỗi người chơi (giờ chẵn, 1 đến 6 giờ; ai cũng chơi hết buổi thì chia đều). Tiền nước chia đều cho người uống.
+  Ví dụ sân 400.000đ, 2 giờ: 3 người chơi 2 giờ, 2 người chơi 1 giờ, tổng 8 giờ, mỗi giờ 50.000đ: người 2 giờ trả 100.000đ, người 1 giờ trả 50.000đ.
 - Mỗi phần làm tròn lên 1.000đ. Người ứng tiền được ghi nhận tổng các phần đã chia, nên phần dư do làm tròn thuộc về người ứng.
 - Số dư mỗi người = tiền đã ứng − phần phải chia + tiền đã chuyển − tiền đã nhận. Tổng số dư cả nhóm luôn bằng 0.
 - App gợi ý ai chuyển cho ai, kèm mã QR và nút mở thẳng app ngân hàng trên iPhone (MB Bank, VietinBank, BIDV, ACB, OCB tự điền sẵn STK, số tiền, nội dung; app khác chỉ mở, STK được chép sẵn).

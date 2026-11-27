@@ -24,6 +24,45 @@ describe("splitSession", () => {
     expect([...shares.values()]).toEqual([25_000, 25_000, 25_000, 25_000]);
   });
 
+  it("splits the court by hours played and the drinks equally", () => {
+    const shares = splitSession({
+      courtAmount: 400_000,
+      drinkAmount: 30_000,
+      attendees: [
+        { memberId: 1, drank: true, hours: 2 },
+        { memberId: 2, drank: false, hours: 2 },
+        { memberId: 3, drank: false, hours: 2 },
+        { memberId: 4, drank: true, hours: 1 },
+        { memberId: 5, drank: false, hours: 1 },
+      ],
+    });
+    // 8 hours in all: 50.000đ an hour; drinks 15.000đ each for the 2 drinkers
+    expect([...shares.values()]).toEqual([115_000, 100_000, 100_000, 65_000, 50_000]);
+  });
+
+  it("splits equally when everyone played as long, whatever the length", () => {
+    const people = attendees(6, 3);
+    const byHours = (hours: number) =>
+      splitSession({ courtAmount: 250_000, drinkAmount: 70_000, attendees: people.map((a) => ({ ...a, hours })) });
+    expect(byHours(3)).toEqual(byHours(1));
+    expect(byHours(1)).toEqual(splitSession({ courtAmount: 250_000, drinkAmount: 70_000, attendees: people }));
+  });
+
+  it("rounds each weighted court share up, so the payer is never short", () => {
+    const shares = splitSession({
+      courtAmount: 100_000,
+      drinkAmount: 0,
+      attendees: [
+        { memberId: 1, drank: false, hours: 3 },
+        { memberId: 2, drank: false, hours: 2 },
+        { memberId: 3, drank: false, hours: 2 },
+      ],
+    });
+    // 100000 * 3/7 = 42857 -> 43000; 100000 * 2/7 = 28571 -> 29000
+    expect([...shares.values()]).toEqual([43_000, 29_000, 29_000]);
+    expect(sum(shares.values())).toBeGreaterThanOrEqual(100_000);
+  });
+
   it("rejects drinks with nobody drinking, and empty sessions", () => {
     expect(() => splitSession({ courtAmount: 100_000, drinkAmount: 50_000, attendees: attendees(4, 0) })).toThrow();
     expect(() => splitSession({ courtAmount: 100_000, drinkAmount: 0, attendees: [] })).toThrow();

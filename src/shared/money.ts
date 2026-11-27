@@ -6,10 +6,14 @@ export const ROUND_TO = 1000;
 /** Largest single amount the app accepts (court, drinks, or one transfer). */
 export const MAX_AMOUNT = 100_000_000;
 
+/** Most hours one person can be marked as playing in a session; always whole hours. */
+export const MAX_HOURS = 6;
+
 export interface SplitInput {
   courtAmount: number;
   drinkAmount: number;
-  attendees: { memberId: number; drank: boolean }[];
+  /** hours: whole hours played, 1 when missing */
+  attendees: { memberId: number; drank: boolean; hours?: number }[];
 }
 
 export interface SuggestedTransfer {
@@ -25,8 +29,9 @@ function ceilShare(amount: number, count: number): number {
 }
 
 /**
- * Share per attendee: court cost split among everyone present, drink cost
- * split among drinkers, each part rounded up to ROUND_TO.
+ * Share per attendee: court cost split among everyone present in proportion
+ * to the hours each played (equally when everyone played as long), drink cost
+ * split equally among drinkers, each part rounded up to ROUND_TO.
  */
 export function splitSession(input: SplitInput): Map<number, number> {
   const { courtAmount, drinkAmount, attendees } = input;
@@ -34,9 +39,17 @@ export function splitSession(input: SplitInput): Map<number, number> {
   const drinkers = attendees.filter((a) => a.drank).length;
   if (drinkAmount > 0 && drinkers === 0) throw new Error("Chọn người uống");
 
-  const court = ceilShare(courtAmount, attendees.length);
+  const hoursOf = (a: SplitInput["attendees"][number]) => a.hours ?? 1;
+  const totalHours = attendees.reduce((sum, a) => sum + hoursOf(a), 0);
   const drink = drinkers > 0 ? ceilShare(drinkAmount, drinkers) : 0;
-  return new Map(attendees.map((a) => [a.memberId, court + (a.drank ? drink : 0)]));
+  return new Map(
+    attendees.map((a) => [
+      a.memberId,
+      // court * hours / totalHours, rounded up: 3 of 5 people at 2h and 2 at 1h
+      // over 400.000đ gives 100.000đ and 50.000đ.
+      ceilShare(courtAmount * hoursOf(a), totalHours) + (a.drank ? drink : 0),
+    ]),
+  );
 }
 
 /**

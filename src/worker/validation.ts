@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { BANK_CODES } from "../shared/banks";
-import { MAX_AMOUNT } from "../shared/money";
+import { MAX_AMOUNT, MAX_HOURS } from "../shared/money";
 
 // Request body schemas. Every write is validated here before touching D1.
 
@@ -74,7 +74,20 @@ export const sessionSchema = z
     drinkAmount: amount,
     note: optionalText(200),
     attendees: z
-      .array(z.object({ memberId, drank: z.boolean() }))
+      .array(
+        z.object({
+          memberId,
+          drank: z.boolean(),
+          // Whole hours only (1h, 2h, 3h, never 1h30). Missing means 1, so a
+          // client from before hours existed still gets the equal split.
+          hours: z
+            .number("Số giờ không hợp lệ")
+            .int("Số giờ phải là số nguyên")
+            .min(1, "Ít nhất 1 giờ")
+            .max(MAX_HOURS, `Tối đa ${MAX_HOURS} giờ`)
+            .default(1),
+        }),
+      )
       .min(1, "Chọn người đi")
       .max(50),
   })

@@ -21,6 +21,7 @@ export interface AttendeeRow {
   session_id: string;
   member_id: number;
   drank: number;
+  hours: number;
   share: number;
 }
 export interface TransferRow {
@@ -48,6 +49,7 @@ export const ACTIVITY_SHOWN = 50;
 export const attendeeFromRow = (row: AttendeeRow): Attendee => ({
   memberId: row.member_id,
   drank: row.drank === 1,
+  hours: row.hours,
   share: row.share,
 });
 
@@ -123,7 +125,7 @@ export async function loadState(db: D1Database, actor: Me | null): Promise<AppSt
     db.prepare(
       "SELECT id, date, payer_id, court_amount, drink_amount, note FROM sessions ORDER BY date DESC, rowid DESC",
     ),
-    db.prepare("SELECT session_id, member_id, drank, share FROM session_attendees ORDER BY member_id"),
+    db.prepare("SELECT session_id, member_id, drank, hours, share FROM session_attendees ORDER BY member_id"),
     db.prepare("SELECT id, date, from_id, to_id, amount, note FROM transfers ORDER BY date DESC, id DESC"),
     db.prepare("SELECT * FROM activity_log ORDER BY id DESC LIMIT ?").bind(ACTIVITY_SHOWN),
   ]);

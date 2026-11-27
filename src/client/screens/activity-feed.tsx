@@ -25,6 +25,11 @@ function sessionChanges(before: SessionSnapshot, after: SessionSnapshot, nameOf:
       .map((a) => a.memberId)
       .sort((x, y) => x - y)
       .join();
+  const hoursOf = (s: SessionSnapshot) =>
+    s.attendees
+      .map((a) => `${a.memberId}:${a.hours}`)
+      .sort()
+      .join();
   const parts: string[] = [];
   if (before.date !== after.date) parts.push(`ngày ${formatDayMonth(before.date)} → ${formatDayMonth(after.date)}`);
   if (before.payerId !== after.payerId) parts.push(`${nameOf(before.payerId)} → ${nameOf(after.payerId)} ứng`);
@@ -34,6 +39,7 @@ function sessionChanges(before: SessionSnapshot, after: SessionSnapshot, nameOf:
     parts.push(`${before.attendees.length} → ${after.attendees.length} người`);
   } else if (ids(before) !== ids(after)) parts.push("đổi người đi");
   else if (ids(before, true) !== ids(after, true)) parts.push("đổi người uống");
+  else if (hoursOf(before) !== hoursOf(after)) parts.push("đổi giờ chơi");
   if (before.note !== after.note) parts.push("sửa ghi chú");
   return parts.join(" · ") || "không đổi gì";
 }
@@ -76,7 +82,8 @@ export function ActivityFeed() {
 
   const restoreSession = (s: SessionSnapshot) => {
     if (!window.confirm(`Khôi phục buổi ${formatDayMonth(s.date)}?`)) return;
-    const attendees = s.attendees.map(({ memberId, drank }) => ({ memberId, drank }));
+    // Entries logged before hours existed have none: the server then counts 1 hour each, as they were split.
+    const attendees = s.attendees.map(({ memberId, drank, hours }) => ({ memberId, drank, hours }));
     // The server drops the old id and gives the session a new one.
     void write("POST", "/api/sessions", { ...s, attendees });
   };

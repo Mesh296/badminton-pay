@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { splitSession } from "../../shared/money";
+import { MAX_HOURS, splitSession } from "../../shared/money";
 import { LOGIN_URL } from "../api";
 import { useApp } from "../app-context";
 import { byName, formatMoney, todayIso } from "../format";
@@ -8,7 +8,11 @@ import { Avatar } from "../member-visuals";
 import { MoneyInput } from "../money-input";
 import { navigate } from "../use-hash-route";
 
-// Create or edit one session: who paid, the two amounts, who came, who drank.
+/** 1, 2, … MAX_HOURS: whole hours only, never 1h30 */
+const HOUR_CHOICES = Array.from({ length: MAX_HOURS }, (_, i) => i + 1);
+
+// Create or edit one session: who paid, the two amounts, who came, how long
+// they played, who drank.
 // A member can only enter sessions they paid for and edit those; an admin can
 // do it for anyone. Everyone else sees the session read-only.
 export function SessionForm({ sessionId }: { sessionId?: string }) {
@@ -25,8 +29,16 @@ export function SessionForm({ sessionId }: { sessionId?: string }) {
   const [court, setCourt] = useState(editing?.courtAmount ?? 0);
   const [drink, setDrink] = useState(editing?.drinkAmount ?? 0);
   const [note, setNote] = useState(editing?.note ?? "");
-  // memberId -> drank, for everyone who attended
-  const [picked, setPicked] = useState(() => new Map(editing?.attendees.map((a) => [a.memberId, a.drank])));
+  // How long the session ran, in whole hours: what everyone played unless set
+  // lower for them. Not stored; it is the longest anyone played. A new session
+  // starts from the last one's.
+  const [length, setLength] = useState(() =>
+    Math.max(1, ...((editing ?? state.sessions[0])?.attendees.map((a) => a.hours) ?? [])),
+  );
+  // memberId -> what they had and how long they played, for everyone who attended
+  const [picked, setPicked] = useState(
+    () => new Map(editing?.attendees.map((a) => [a.memberId, { drank: a.drank, hours: a.hours }])),
+  );
   const [saving, setSaving] = useState(false);
 
   if (sessionId && !editing) return <p className="empty">Không tìm thấy buổi</p>;
@@ -46,10 +58,9 @@ export function SessionForm({ sessionId }: { sessionId?: string }) {
 
   // Active members, plus anyone already on this session even if deactivated since.
   const members = state.members.filter((m) => m.active || picked.has(m.id) || m.id === payerId).sort(byName);
-  const attendees = [...picked].map(([memberId, drank]) => ({
-    memberId,
-    drank,
-  }));
+  const attendees = [...picked].map(([memberId, { drank, hours }]) => ({ memberId, drank, hours }));
+  // Hours only matter once the session ran longer than one hour.
+  const timed = length > 1;
 
   // Same rules as the server, so Save is only enabled for a valid session.
   const problem = !date
@@ -68,13 +79,30 @@ export function SessionForm({ sessionId }: { sessionId?: string }) {
 
   const toggle = (id: number, field: "present" | "drank") => {
     const next = new Map(picked);
+    const current = next.get(id);
     if (field === "present") {
-      if (next.has(id)) next.delete(id);
-      else next.set(id, false);
-    } else {
-      next.set(id, !next.get(id));
+      if (current) next.delete(id);
+      else next.set(id, { drank: false, hours: length });
+    } else if (current) {
+      next.set(id, { ...current, drank: !current.drank });
     }
     setPicked(next);
+  };
+
+  const setHours = (id: number, hours: number) => {
+    const current = picked.get(id);
+    if (current) setPicked(new Map(picked).set(id, { ...current, hours }));
+  };
+
+  // Whoever played the whole session keeps playing the whole of the new
+  // length; anyone set lower stays as they are, within it.
+  const changeLength = (next: number) => {
+    setPicked(
+      new Map(
+        [...picked].map(([id, a]) => [id, { ...a, hours: a.hours === length ? next : Math.min(a.hours, next) }]),
+      ),
+    );
+    setLength(next);
   };
 
   const save = async () => {
@@ -126,6 +154,16 @@ export function SessionForm({ sessionId }: { sessionId?: string }) {
               ))}
             </select>
           </label>
+          <label className="field">
+            <span>Số giờ chơi</span>
+            <select value={length} onChange={(e) => changeLength(Number(e.target.value))}>
+              {HOUR_CHOICES.map((h) => (
+                <option key={h} value={h}>
+                  {h} giờ
+                </option>
+              ))}
+            </select>
+          </label>
         </section>
 
         <section className="card surface">
@@ -137,9 +175,12 @@ export function SessionForm({ sessionId }: { sessionId?: string }) {
           <p id="attendees-label" className="eyebrow">
             Đi {attendees.length} · Uống {attendees.filter((a) => a.drank).length}
           </p>
-          <ul className="picker">
+          {timed && <p className="hint">Tiền sân chia theo giờ chơi. Ai chơi ít hơn {length} giờ thì chọn lại cạnh tên.</p>}
+          <ul className={timed ? "picker timed" : "picker"}>
             {members.map((m) => {
-              const present = picked.has(m.id);
+              const attendee = picked.get(m.id);
+              const present = Boolean(attendee);
+              const hours = attendee?.hours ?? length;
               return (
                 <li key={m.id}>
                   <button
@@ -152,16 +193,33 @@ export function SessionForm({ sessionId }: { sessionId?: string }) {
                     <span className="grow">{m.name}</span>
                     {present && shares && <span className="share">{formatMoney(shares.get(m.id) ?? 0)}</span>}
                   </button>
+                  {timed && (
+                    <select
+                      className={hours < length ? "toggle hours short" : "toggle hours"}
+                      aria-label={`${m.name} chơi mấy giờ`}
+                      data-present={present}
+                      value={hours}
+                      disabled={!present}
+                      onChange={(e) => setHours(m.id, Number(e.target.value))}
+                    >
+                      {HOUR_CHOICES.slice(0, length).map((h) => (
+                        <option key={h} value={h}>
+                          {h}h
+                        </option>
+                      ))}
+                    </select>
+                  )}
                   <button
                     type="button"
                     className="toggle drink"
-                    aria-pressed={picked.get(m.id) === true}
+                    aria-pressed={attendee?.drank === true}
                     aria-label={`${m.name} uống nước`}
                     disabled={!present}
                     onClick={() => toggle(m.id, "drank")}
                   >
                     <Icon name="droplet" className="small" />
-                    Nước
+                    {/* No room for the word once the hours sit beside it */}
+                    {!timed && "Nước"}
                   </button>
                 </li>
               );

@@ -31,7 +31,7 @@ export function logActivity(
 export async function readStoredSession(db: D1Database, id: string): Promise<SessionSnapshot | null> {
   const [session, attendees] = await db.batch([
     db.prepare("SELECT id, date, payer_id, court_amount, drink_amount, note FROM sessions WHERE id = ?").bind(id),
-    db.prepare("SELECT session_id, member_id, drank, share FROM session_attendees WHERE session_id = ? ORDER BY member_id").bind(id),
+    db.prepare("SELECT session_id, member_id, drank, hours, share FROM session_attendees WHERE session_id = ? ORDER BY member_id").bind(id),
   ]);
   const row = session.results[0] as SessionRow | undefined;
   return row ? sessionFromRow(row, (attendees.results as AttendeeRow[]).map(attendeeFromRow)) : null;

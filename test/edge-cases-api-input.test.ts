@@ -60,7 +60,27 @@ describe("session amount and shape validation", () => {
     const [id] = await addMembers(1);
     const body = sessionBody([id], { courtAmount: 50_000, drinkAmount: 30_000, attendees: [{ memberId: id, drank: true }] });
     expect((await call("POST", "/api/sessions", body)).status).toBe(201);
-    expect((await getState()).sessions[0].attendees).toEqual([{ memberId: id, drank: true, share: 80_000 }]);
+    // No hours sent: one hour, as clients from before hours existed send it
+    expect((await getState()).sessions[0].attendees).toEqual([{ memberId: id, drank: true, hours: 1, share: 80_000 }]);
+  });
+
+  it("splits the court by whole hours played and rejects anything but 1 to 6 whole hours", async () => {
+    const ids = await addMembers(3);
+    const attendees = (hours: unknown[]) => ids.map((memberId, i) => ({ memberId, drank: false, hours: hours[i] }));
+    const body = sessionBody(ids, { courtAmount: 250_000, drinkAmount: 0, attendees: attendees([2, 2, 1]) });
+    expect((await call("POST", "/api/sessions", body)).status).toBe(201);
+    const [session] = (await getState()).sessions;
+    expect(session.attendees.map((a) => [a.hours, a.share])).toEqual([
+      [2, 100_000],
+      [2, 100_000],
+      [1, 50_000],
+    ]);
+
+    for (const bad of [1.5, 0, -1, 7, "2", null]) {
+      const res = await call("POST", "/api/sessions", { ...body, attendees: attendees([2, bad, 1]) });
+      expect(res.status, `hours ${String(bad)}`).toBe(400);
+    }
+    expect((await getState()).sessions).toHaveLength(1);
   });
 
   it("accepts 50 attendees at max amounts and rejects 51", async () => {

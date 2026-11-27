@@ -14,6 +14,8 @@ export interface Member {
 export interface Attendee {
   memberId: number;
   drank: boolean;
+  /** Whole hours played; the court cost is split in proportion to it. */
+  hours: number;
   share: number;
 }
 

@@ -34,8 +34,8 @@ describe("GET /api/state shape", () => {
     const { sessions } = await getState();
     expect(sessions.map((s) => s.date)).toEqual(["2026-11-20", "2026-11-01"]);
     expect(sessions[0].attendees).toEqual([
-      { memberId: c, drank: true, share: 40_000 },
-      { memberId: d, drank: false, share: 20_000 },
+      { memberId: c, drank: true, hours: 1, share: 40_000 },
+      { memberId: d, drank: false, hours: 1, share: 20_000 },
     ]);
     expect(sessions[1].attendees.map((x) => x.memberId).sort()).toEqual([a, b].sort());
     expect(sessions[1].attendees.map((x) => x.share)).toEqual([30_000, 30_000]);

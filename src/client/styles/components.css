@@ -177,6 +177,24 @@ fieldset:disabled .toggle[aria-pressed="true"] { opacity: 1; }
 .toggle.drink[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
 .toggle:disabled { opacity: 0.45; cursor: not-allowed; }
 .share { font-weight: 600; font-variant-numeric: tabular-nums; }
+/* Session longer than an hour: an hours pill joins each row, so the drink
+   toggle shrinks to its icon and the share moves under the name. */
+.toggle.hours {
+  flex: none;
+  width: 56px;
+  padding: 0;
+  text-align: center;
+  text-align-last: center;
+  -webkit-appearance: none;
+  appearance: none;
+}
+/* Played less than the whole session */
+.toggle.hours.short { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+fieldset:disabled .toggle.hours[data-present="true"] { opacity: 1; }
+.picker.timed .toggle.drink { width: 52px; padding: 0; }
+.picker.timed .toggle.name { display: grid; grid-template-columns: auto 1fr; column-gap: var(--sp-8); align-content: center; }
+.picker.timed .toggle.name:has(.share) .avatar { grid-row: span 2; }
+.picker.timed .share { font-size: var(--text-caption); }
 
 /* Sticky save bar: solid white panel floating above the tab bar */
 .savebar {
