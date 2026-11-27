@@ -165,7 +165,7 @@ main {
    set in main.tsx), where the real backdrop cannot be bent; hidden otherwise.
    - .lens-view: the grown lens's box. Its opaque canvas hides the real tabs
      beneath, and its clip always follows the glass's outline exactly (both are
-     animated with the same timing in motion.css), so no second outline shows.
+     computed from --sx/--sy), so no second outline shows.
    - .lens-bend: bends everything inside it near the rim (#glass-bend)
    - .lens-frame: a fixed, invisible box two lens widths past each side, so
      WebKit sizes the filter the same wherever the copy has slid to (see
@@ -179,25 +179,25 @@ main {
   display: block;
   position: absolute;
   inset: calc(var(--grow-y) * -100%) calc(var(--grow-x) * -100%);
-  background: var(--bg);
-  /* What Chromium's backdrop filter does to whatever is behind the glass: a little brighter and richer.
-     Without it the inside of the lens reads as flat grey, not glass. */
-  filter: var(--lens-backdrop);
-  /* Exactly the glass's outline at every moment: both are computed from --lift
-     (0 = the slot's pill at rest, 1 = fully grown), see motion.css. */
+  /* The canvas a little brighter, as Chromium's backdrop filter shows it through
+     the glass. Without it the inside of the lens reads as flat grey, not glass. */
+  background: var(--lens-inside);
+  /* Exactly the glass's outline at every moment: the glass is the slot's pill
+     scaled by --sx/--sy (motion.css), and this box is the pill fully grown. */
   clip-path: inset(
-    calc((1 - var(--lift)) * var(--grow-y) / (1 + 2 * var(--grow-y)) * 100%)
-    calc((1 - var(--lift)) * var(--grow-x) / (1 + 2 * var(--grow-x)) * 100%)
-    round calc(var(--end) * (1 + 2 * var(--grow-x) * var(--lift))) / calc(var(--end) * (1 + 2 * var(--grow-y) * var(--lift)))
+    calc((1 + 2 * var(--grow-y) - var(--sy)) / (2 + 4 * var(--grow-y)) * 100%)
+    calc((1 + 2 * var(--grow-x) - var(--sx)) / (2 + 4 * var(--grow-x)) * 100%)
+    round calc(var(--end) * var(--sx)) / calc(var(--end) * var(--sy))
   );
+  /* Not painted at rest: WebKit kept filtering it while invisible, which made
+     every page change slower. */
+  visibility: hidden;
   opacity: 0;
 }
-:root[data-bend] .tabbar.lens-lifted .lens-view { opacity: 1; }
-/* In WebKit the glass grows from --lift too, instead of from its own scale transition. */
+:root[data-bend] .tabbar.lens-lifted .lens-view { visibility: visible; opacity: 1; }
+/* In WebKit the glass takes its size from --sx/--sy instead of its own scale transition. */
 :root[data-bend] .tabbar .tab-indicator::before,
-:root[data-bend] .tabbar .tab-indicator::after {
-  scale: calc(1 + 2 * var(--grow-x) * var(--lift)) calc(1 + 2 * var(--grow-y) * var(--lift));
-}
+:root[data-bend] .tabbar .tab-indicator::after { scale: var(--sx) var(--sy); }
 .lens-bend { position: absolute; inset: 0; filter: url(#glass-bend); }
 /* The bar's body and rim, copied: inset by the bar's padding. Only inset shadows, so nothing
    reaches past the lens vertically and changes how WebKit sizes the filter. */

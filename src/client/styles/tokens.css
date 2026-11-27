@@ -55,6 +55,9 @@
     inset -5px 0 7px -5px rgb(70 120 255 / 0.5), inset 0 -10px 14px -10px rgb(0 0 0 / 0.16),
     inset 0 0 12px rgb(0 0 0 / 0.1);
   --lens-backdrop: saturate(180%) brightness(1.08);
+  /* The canvas as seen through the lens: --lens-backdrop applied to --canvas, precomputed
+     for WebKit's copy of the tabs so it needs no filter of its own */
+  --lens-inside: #ffffff;
   --lens-shadow: 0 14px 30px rgb(0 0 0 / 0.2), 0 3px 6px rgb(0 0 0 / 0.1);
   /* Clear glass bubble for the add button: a light catch at the top left, a
      faint shade at the bottom, a bright rim, and only a light blur behind. */
@@ -98,7 +101,7 @@
   --text-heading: 24px;
   --text-display: 44px;
 
-  /* Motion: one calm curve, no overshoot anywhere */
+  /* Motion: one calm curve; the only overshoot is --ease-bubble, the tab-bar lens lifting */
   --fast: 150ms;
   --base: 280ms;
   --slow: 360ms;
@@ -114,6 +117,9 @@
   --bubble: 400ms;
   /* Landing: the bubble collapses into a round blob, then spreads out into the pill. */
   --land: 420ms;
+  /* The round blob the landing passes through, as a scale of the pill (narrower, taller) */
+  --blob-x: 0.78;
+  --blob-y: 1.34;
   --ease-bubble: cubic-bezier(0.34, 1.36, 0.64, 1);
   /* Lens travel between tabs: slower, accelerating out of rest and settling gently */
   --glide: 420ms;
@@ -130,6 +136,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --canvas: #0f0f0f;
+    --lens-inside: #101010;
     --white: #1c1c1e; /* card surface */
     --ink: #f5f5f5;
     --gray: #a3a3a3;

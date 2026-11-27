@@ -1,6 +1,7 @@
-/* Motion. Only opacity and transform-type properties animate. The one place
-   with a bounce is the tab-bar lens lifting into a bubble; everything else
-   eases without overshoot. Navigation chrome never animates as a whole. */
+/* Motion. Mostly opacity and transforms; in WebKit the tab-bar lens also
+   animates registered custom properties (see the end of the lens section).
+   The one place with a bounce is the lens lifting into a bubble; everything
+   else eases without overshoot. Navigation chrome never animates as a whole. */
 
 /* Screen change, in two steps (use-screen-transition.ts adds .leaving and
    data-nav). Plain CSS, so it behaves the same in every browser.
@@ -43,7 +44,7 @@
 /* A rule's transition applies when moving INTO that rule's state, so the two
    directions can differ. Settling (these base rules): size and look ease down
    together at one even pace, no bounce. */
-.tab-indicator, .lens-copy { transition: translate var(--glide) var(--ease-in-out); }
+.tab-indicator { transition: translate var(--glide) var(--ease-in-out); }
 /* The glass turns into the flat tint while it collapses, so the round blob is already the pill's colour. */
 .tab-indicator::before, .tab-indicator::after { transition: opacity 150ms linear, scale var(--bubble) var(--ease-in-out); }
 /* Lifting: the bubble swells with a soft bounce and the glass appears quickly. */
@@ -54,17 +55,16 @@
    it goes, with no rebound. Plays only after the lens has moved
    (tab-bar.tsx adds .lens-landed), never on first paint. */
 .tabbar.lens-landed .tab-indicator::before,
-.tabbar.lens-landed .tab-indicator::after { animation: lens-land var(--land) both; }
+.tabbar.lens-landed .tab-indicator::after { animation: lens-land var(--land) backwards; }
 @keyframes lens-land {
   /* collapse: fast */
   0% { scale: calc(1 + 2 * var(--grow-x)) calc(1 + 2 * var(--grow-y)); animation-timing-function: cubic-bezier(0.3, 0, 0.4, 1); }
   /* round blob; from here it spreads out: long, decelerating */
-  24% { scale: 0.78 1.34; animation-timing-function: cubic-bezier(0.2, 0.6, 0.2, 1); }
+  24% { scale: var(--blob-x) var(--blob-y); animation-timing-function: cubic-bezier(0.2, 0.6, 0.2, 1); }
   100% { scale: 1; }
 }
-/* While a finger drags it, the lens follows almost instantly; the copy inside moves against it in step. */
-.tabbar.lens-dragging .tab-indicator, .tabbar.lens-dragging .lens-copy { transition: translate 90ms linear; }
-/* The copy's window shows at once on lift and goes at once on landing, before the glass collapses away from it. */
+/* While a finger drags it, the lens follows almost instantly. */
+.tabbar.lens-dragging .tab-indicator { transition: translate 90ms linear; }
 
 /* State changes ease instead of snapping */
 .button, .toggle, .segmented button, .round-button, .fab, .link, .list-row {
@@ -78,10 +78,13 @@
 /* A tab swells with the lens's bounce and eases back down with it */
 .tabbar .tab { transition: transform var(--bubble) var(--ease-in-out), color var(--bubble) var(--ease-in-out); }
 .tabbar .tab[data-lens] { transition: transform var(--bubble) var(--ease-bubble), color var(--base) var(--ease); }
-/* Inside the bent copy nothing animates on its own: WebKit does not redraw a
-   filtered layer for a child's running transition, and showed a stale, warped
-   frame while the magnify played. The copy simply moves with the lens. */
-.tabbar .lens-copy .tab, .tabbar .lens-copy .tab[data-lens] { transition: none; }
+/* Inside the bent copy no transform may animate: WebKit hands a running
+   transform to the GPU and the filtered layer stops redrawing it. The copy's
+   tabs magnify through --magnify instead, a number the browser restyles every
+   frame, so they swell and settle with the real tabs and stay bent. */
+.tabbar .lens-copy .tab { transform: none; scale: var(--magnify); --magnify: 1; transition: --magnify var(--bubble) var(--ease-in-out), color var(--bubble) var(--ease-in-out); }
+.tabbar .lens-copy .tab[data-lens] { transform: none; --magnify: 1.18; transition: --magnify var(--bubble) var(--ease-bubble), color var(--base) var(--ease); }
+@property --magnify { syntax: "<number>"; inherits: false; initial-value: 1; }
 
 /* WebKit (data-bend): the lens and the copy inside it must never move by a
    transition of their own. Safari hands a moving transform to the GPU, which
@@ -90,22 +93,47 @@
    transitioned (registered with @property below, so they interpolate); the
    browser restyles both elements from them every frame, on the main thread,
    with the bend applied and the two always in step. */
-:root[data-bend] .tabbar .lens-copy { transition: none; }
-/* Growing and shrinking the same way: --lift drives both the glass and the
-   copy's window (base.css), so they cannot drift apart as a GPU-run scale and
-   a main-thread clip would. The landing squeeze still plays on the glass alone,
-   after the window has gone. */
-:root[data-bend] .tabbar .tab-indicator { --lift: 0; transition: --lift var(--bubble) var(--ease-in-out); }
-:root[data-bend] .tabbar.lens-lifted .tab-indicator { --lift: 1; transition: --lift var(--bubble) var(--ease-bubble); }
+/* The glass's size is two numbers, --sx and --sy, and the copy's window is cut
+   from the same two (base.css), so the outlines stay one through the lift, the
+   glide and the landing squeeze; a GPU-run scale and a main-thread clip would
+   drift apart. */
+:root[data-bend] .tabbar .tab-indicator {
+  --sx: 1;
+  --sy: 1;
+  transition: --sx var(--bubble) var(--ease-in-out), --sy var(--bubble) var(--ease-in-out);
+}
+:root[data-bend] .tabbar.lens-lifted .tab-indicator {
+  --sx: calc(1 + 2 * var(--grow-x));
+  --sy: calc(1 + 2 * var(--grow-y));
+  transition: --sx var(--bubble) var(--ease-bubble), --sy var(--bubble) var(--ease-bubble);
+}
+:root[data-bend] .tabbar.lens-landed .tab-indicator { animation: lens-land-size var(--land) backwards; }
+:root[data-bend] .tabbar.lens-landed .tab-indicator::before,
+:root[data-bend] .tabbar.lens-landed .tab-indicator::after { animation: none; }
+/* lens-land, expressed on the two numbers.
+   Both landings fill backwards only: they end on the resting size, and an
+   animation left attached afterwards stopped the next lift from transitioning,
+   so a second tap made the glass jump to full size. */
+@keyframes lens-land-size {
+  0% { --sx: calc(1 + 2 * var(--grow-x)); --sy: calc(1 + 2 * var(--grow-y)); animation-timing-function: cubic-bezier(0.3, 0, 0.4, 1); }
+  24% { --sx: var(--blob-x); --sy: var(--blob-y); animation-timing-function: cubic-bezier(0.2, 0.6, 0.2, 1); }
+  100% { --sx: 1; --sy: 1; }
+}
 :root[data-bend] .tabbar .tab-indicator::before,
 :root[data-bend] .tabbar .tab-indicator::after { transition: opacity 150ms linear; }
+/* The copy fades in and out with the glass, inside the same outline: in at
+   lift (where the window is still the slot's pill and the copy lies exactly on
+   the real tabs), out during the landing squeeze. Hidden, it is not painted. */
+:root[data-bend] .tabbar .lens-view { transition: opacity 150ms linear, visibility 0s linear 150ms; }
+:root[data-bend] .tabbar.lens-lifted .lens-view { transition: opacity var(--base) var(--ease), visibility 0s; }
 :root[data-bend] .tabbar.lens-lifted .tab-indicator::before,
 :root[data-bend] .tabbar.lens-lifted .tab-indicator::after { transition: opacity var(--base) var(--ease); }
 :root[data-bend] .tabbar { transition: --lens-x var(--glide) var(--ease-in-out), --copy-x var(--glide) var(--ease-in-out); }
 :root[data-bend] .tabbar.lens-dragging { transition: --lens-x 90ms linear, --copy-x 90ms linear; }
 @property --lens-x { syntax: "<length-percentage>"; inherits: true; initial-value: 0%; }
 @property --copy-x { syntax: "<length-percentage>"; inherits: true; initial-value: 0%; }
-@property --lift { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --sx { syntax: "<number>"; inherits: true; initial-value: 1; }
+@property --sy { syntax: "<number>"; inherits: true; initial-value: 1; }
 .field input, .field select { transition: box-shadow var(--base) var(--ease); }
 
 /* Hover, for devices with a pointer (phones have no hover; they get the press

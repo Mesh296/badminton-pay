@@ -13,11 +13,6 @@ function kindOf(from: string[], to: string[]): NavKind {
   return delta > 0 ? "push" : delta < 0 ? "pop" : "tab";
 }
 
-/** Exit duration from the CSS token, so the timing lives in one place (tokens.css). */
-function exitMs(): number {
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return 0;
-  return cssTimeMs("--exit");
-}
 
 /**
  * Two-step screen change, the way native apps do it: the current screen plays
@@ -38,7 +33,7 @@ export function useScreenTransition(route: string[]) {
       // Scroll only once the old screen is gone, so it does not jump while fading out.
       applyPendingScrollReset();
       setShown({ route, kind });
-    }, exitMs());
+    }, cssTimeMs("--exit"));
     return () => window.clearTimeout(timer);
   }, [leaving, route, kind]);
 
