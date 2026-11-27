@@ -60,13 +60,20 @@ interface Props {
 }
 
 export function SettleActions({ from, to, amount }: Props) {
-  const { state, write, actsAs, me, nameOf } = useApp();
+  const { state, write, actsAs, me, nameOf, suggestions } = useApp();
   const claim = state.claims.find((c) => c.fromId === from.id && c.toId === to.id);
   const isPayer = me?.memberId === from.id;
   // An admin paying their own debt is the payer here, never the receiver.
   const isReceiver = !isPayer && actsAs(to.id);
-  // Reported to someone else, still waiting: the suggestions do not count it yet.
-  const waiting = isPayer ? state.claims.find((c) => c.fromId === from.id && c.toId !== to.id) : undefined;
+  // A report still waiting on someone the suggestions no longer send this payer
+  // to (they changed after a new session or payment): that money is not
+  // counted yet, so paying here as well could pay twice. A report to someone
+  // who is still suggested has its own card, and both debts are real: no warning then.
+  const waiting = isPayer
+    ? state.claims.find(
+        (c) => c.fromId === from.id && c.toId !== to.id && !suggestions.some((s) => s.fromId === from.id && s.toId === c.toId),
+      )
+    : undefined;
   const [open, setOpen] = useState(false);
   const [paid, setPaid] = useState(amount);
   const [saving, setSaving] = useState(false);

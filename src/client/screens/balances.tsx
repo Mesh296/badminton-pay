@@ -20,16 +20,23 @@ function MyStatus({ memberId, totalDebt, next }: { memberId: number; totalDebt: 
   const group = <p className="hint">{totalDebt > 0 ? `Cả nhóm còn nợ ${formatMoney(totalDebt)}` : "Cả nhóm hết nợ"}</p>;
 
   if (balance < 0) {
+    // Owing several people: the ones already reported wait for their answer,
+    // the rest still need paying, and the button names who is next.
+    const toPay = payees.filter((p) => !reported.some((c) => c.toId === p.toId));
+    const names = (ids: number[]) => ids.map(nameOf).join(", ");
     return (
       <section className="hero surface">
         <p className="eyebrow">Bạn đang nợ</p>
         <p className="hero-amount">{formatMoney(-balance)}</p>
         <a className="button" href={myPage}>
           <Icon name="wallet" className="small" />
-          {payees.length === 1 ? `Chuyển cho ${nameOf(payees[0].toId)}` : "Chuyển tiền"}
+          {toPay.length === 1 ? `Chuyển cho ${nameOf(toPay[0].toId)}` : "Chuyển tiền"}
         </a>
         {reported.length > 0 ? (
-          <p className="hint">Đã báo chuyển, chờ {nameOf(reported[0].toId)} xác nhận</p>
+          <p className="hint">
+            Đã báo {names(reported.map((c) => c.toId))}, chờ xác nhận
+            {toPay.length > 0 && ` · còn chuyển ${names(toPay.map((p) => p.toId))}`}
+          </p>
         ) : (
           group
         )}
