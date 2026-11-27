@@ -109,7 +109,8 @@
 .hero .avatar { margin-bottom: var(--sp-8); background: var(--surface); }
 .hero .check { justify-self: center; text-align: left; }
 /* White QR tile with a hairline ring, so it reads as an object on the white card */
-.qr { justify-self: center; max-width: 100%; height: auto; padding: var(--sp-8); border-radius: 20px; background: var(--qr-tile); box-shadow: 0 0 0 1px var(--line); }
+/* The VietQR-style card draws its own white body and rim (qr-code.tsx) */
+.qr { justify-self: center; max-width: 100%; height: auto; filter: drop-shadow(0 2px 8px rgb(0 0 0 / 0.08)); }
 .account { color: var(--muted); font-size: var(--text-small); text-align: center; overflow-wrap: anywhere; }
 .confirm { display: grid; gap: var(--sp-12); }
 .bank-app { display: grid; gap: var(--sp-12); padding-top: var(--sp-8); border-top: 1px solid var(--line); }
