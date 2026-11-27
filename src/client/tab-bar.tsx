@@ -7,7 +7,20 @@ export interface Tab {
   key: string;
   label: string;
   icon: IconName;
+  /** Something new behind this tab: a red dot on its icon */
+  badge?: boolean;
 }
+
+/** Icon (with its dot) and label, shared by the real tabs and their copy inside the lens. */
+const face = (tab: Tab) => (
+  <>
+    <span className="tab-icon">
+      <Icon name={tab.icon} />
+      {tab.badge && <span className="tab-dot" />}
+    </span>
+    <span>{tab.label}</span>
+  </>
+);
 
 // Floating tab bar with a selection lens.
 // - At rest the selection is a flat tinted pill in the current tab's slot.
@@ -30,6 +43,7 @@ export function TabBar({ tabs, activeIndex }: { tabs: Tab[]; activeIndex: number
       style={cssVars({
         "--lens-x": dragX !== null ? `${dragX}px` : `${lensIndex * 100}%`,
         "--copy-x": dragX !== null ? `${-dragX}px` : `${(-lensIndex * 100) / tabs.length}%`,
+        "--tabs": tabs.length,
       })}
       {...handlers}
     >
@@ -51,8 +65,7 @@ export function TabBar({ tabs, activeIndex }: { tabs: Tab[]; activeIndex: number
                   aria-current={index === activeIndex ? "page" : undefined}
                   data-lens={lifted && index === magnifiedIndex ? "" : undefined}
                 >
-                  <Icon name={tab.icon} />
-                  <span>{tab.label}</span>
+                  {face(tab)}
                 </span>
               ))}
             </span>
@@ -68,8 +81,8 @@ export function TabBar({ tabs, activeIndex }: { tabs: Tab[]; activeIndex: number
           aria-current={index === activeIndex ? "page" : undefined}
           data-lens={lifted && index === magnifiedIndex ? "" : undefined}
         >
-          <Icon name={tab.icon} />
-          <span>{tab.label}</span>
+          {face(tab)}
+          {tab.badge && <span className="sr-only">, có tin mới</span>}
         </a>
       ))}
     </nav>

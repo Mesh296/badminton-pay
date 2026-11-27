@@ -44,7 +44,8 @@ const STRENGTH = 0.2;
  * constant: the lens plus FRAME_SIDE lens widths on each side. The map is
  * placed in the middle part of it (see BEND_MAP_URL for the sideways pull).
  */
-const FRAME_SIDE = 2;
+// Covers the copy at its farthest: with four tabs, three slots either way (base.css .lens-frame).
+const FRAME_SIDE = 3;
 const FRAME_SPAN = 1 + 2 * FRAME_SIDE;
 /**
  * #glass-bend's map: the box is FRAME_SPAN times wider than the lens but just

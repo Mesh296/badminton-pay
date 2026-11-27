@@ -54,6 +54,9 @@ beforeEach(async () => {
     ((await (await call("POST", "/api/members", { name, email })).json()) as { id: number }).id;
   receiver = await add("Minh", RECEIVER);
   payer = await add("Y tá", PAYER);
+  // Minh fronted a session the nurse played in: she owes him, so she may report paying.
+  const session = { date: "2026-11-27", payerId: receiver, courtAmount: 90_000, drinkAmount: 0, attendees: [{ memberId: payer, drank: false }] };
+  expect((await call("POST", "/api/sessions", session, RECEIVER)).status).toBe(201);
 });
 afterEach(() => vi.restoreAllMocks());
 

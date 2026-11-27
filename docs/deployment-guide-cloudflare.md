@@ -106,7 +106,7 @@ Tại thời điểm viết (11/2026): Workers 100.000 request/ngày, D1 5 tri�
 - Phiên đăng nhập là cookie có chữ ký, sống 1 năm. Mất máy thì đổi `SESSION_SECRET` để đăng xuất mọi người.
 - Quyền đã bó hẹp: buổi do người ứng (hoặc quản trị) ghi, chuyển khoản do người nhận (hoặc quản trị) ghi.
 - Thông báo lên điện thoại đi qua dịch vụ push của Apple/Google/Mozilla, đã mã hóa riêng cho từng máy nên các dịch vụ đó không đọc được nội dung. App lưu địa chỉ push của máy đã bật (gắn với thành viên), xóa khi người đó tắt, đăng xuất, hoặc khi dịch vụ push báo máy không còn.
-- Mỗi lần thêm, sửa, xóa buổi hay ghi, hủy chuyển khoản đều vào nhật ký (tab **Lịch sử** → **Nhật ký**): ai làm, lúc nào, trước và sau thế nào. Cả nhóm xem được, nên ghi buổi giả để trừ nợ hay hủy một khoản đã nhận đều lộ tên người làm. Buổi hoặc khoản bị xóa khôi phục được ngay từ nhật ký; app không có cách sửa hay xóa nhật ký.
+- Mỗi lần thêm, sửa, xóa buổi hay ghi, hủy chuyển khoản đều vào nhật ký (tab **Thông báo**), cùng với báo chuyển, hủy báo, vào nhóm và đăng nhập: ai làm, lúc nào, trước và sau thế nào. Cả nhóm xem được, nên ghi buổi giả để trừ nợ hay hủy một khoản đã nhận đều lộ tên người làm. Buổi hoặc khoản bị xóa khôi phục được ngay từ nhật ký; app không có cách sửa hay xóa nhật ký.
 
 Ai làm được gì: xem bảng trong [deployment-guide.md](deployment-guide.md#ai-làm-được-gì).
 

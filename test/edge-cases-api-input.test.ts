@@ -64,6 +64,27 @@ describe("session amount and shape validation", () => {
     expect((await getState()).sessions[0].attendees).toEqual([{ memberId: id, drank: true, hours: 1, share: 80_000 }]);
   });
 
+  it("keeps stored hours when an app opened before hours existed edits the session", async () => {
+    const ids = await addMembers(2);
+    const body = sessionBody(ids, { courtAmount: 300_000, drinkAmount: 0, attendees: ids.map((memberId, i) => ({ memberId, drank: false, hours: i ? 1 : 2 })) });
+    const { id } = (await (await call("POST", "/api/sessions", body)).json()) as { id: string };
+    const old = { ...body, note: "sửa ghi chú", attendees: ids.map((memberId) => ({ memberId, drank: false })) };
+    expect((await call("PUT", `/api/sessions/${id}`, old)).status).toBe(200);
+    expect((await getState()).sessions[0].attendees.map((a) => [a.hours, a.share])).toEqual([
+      [2, 200_000],
+      [1, 100_000],
+    ]);
+  });
+
+  it("saves a session once when the app sends it again with the same id", async () => {
+    const ids = await addMembers(2);
+    const body = sessionBody(ids, { id: crypto.randomUUID() });
+    expect((await call("POST", "/api/sessions", body)).status).toBe(201);
+    expect((await call("POST", "/api/sessions", body)).status).toBe(200);
+    expect((await getState()).sessions).toHaveLength(1);
+    expect((await call("POST", "/api/sessions", { ...body, id: "not-a-uuid" })).status).toBe(400);
+  });
+
   it("splits the court by whole hours played and rejects anything but 1 to 6 whole hours", async () => {
     const ids = await addMembers(3);
     const attendees = (hours: unknown[]) => ids.map((memberId, i) => ({ memberId, drank: false, hours: hours[i] }));

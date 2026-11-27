@@ -43,10 +43,13 @@ interface Props {
 }
 
 export function SettleActions({ from, to, amount }: Props) {
-  const { state, write, actsAs, me } = useApp();
+  const { state, write, actsAs, me, nameOf } = useApp();
   const claim = state.claims.find((c) => c.fromId === from.id && c.toId === to.id);
-  const isReceiver = actsAs(to.id);
   const isPayer = me?.memberId === from.id;
+  // An admin paying their own debt is the payer here, never the receiver.
+  const isReceiver = !isPayer && actsAs(to.id);
+  // Reported to someone else, still waiting: the suggestions do not count it yet.
+  const waiting = isPayer ? state.claims.find((c) => c.fromId === from.id && c.toId !== to.id) : undefined;
   const [open, setOpen] = useState(false);
   const [paid, setPaid] = useState(amount);
   const [saving, setSaving] = useState(false);
@@ -80,10 +83,18 @@ export function SettleActions({ from, to, amount }: Props) {
 
   if (!open) {
     return (
-      <button type="button" className="button" onClick={() => setOpen(true)}>
-        <Icon name="check" className="small" />
-        {isReceiver ? "Đã nhận" : "Đã chuyển"}
-      </button>
+      <>
+        {waiting && (
+          <p className="hint">
+            Bạn đã báo chuyển {formatMoney(waiting.amount)} cho {nameOf(waiting.toId)}, đang chờ xác nhận. Chờ xác nhận xong
+            rồi hẵng chuyển tiếp.
+          </p>
+        )}
+        <button type="button" className="button" onClick={() => setOpen(true)}>
+          <Icon name="check" className="small" />
+          {isReceiver ? "Đã nhận" : "Đã chuyển"}
+        </button>
+      </>
     );
   }
 

@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { logMemberJoin } from "./activity-log";
 import { intParam, readBody } from "./http-helpers";
 import type { AppEnv } from "./index";
 import { linkSchema, profileSchema } from "./validation";
@@ -23,10 +24,12 @@ joinRoutes.post("/", async (c) => {
   const db = c.env.DB;
 
   if (actor.admin) {
-    await db
-      .prepare("INSERT INTO members (name, bank_code, account_no, account_name, email) VALUES (?, ?, ?, ?, ?)")
-      .bind(body.name, body.bankCode, body.accountNo, body.accountName, actor.email)
-      .run();
+    await db.batch([
+      db
+        .prepare("INSERT INTO members (name, bank_code, account_no, account_name, email) VALUES (?, ?, ?, ?, ?)")
+        .bind(body.name, body.bankCode, body.accountNo, body.accountName, actor.email),
+      logMemberJoin(db, actor, "last_insert_rowid()"),
+    ]);
     return c.json({ joined: true }, 201);
   }
 
@@ -84,6 +87,7 @@ joinRoutes.post("/:id/approve", async (c) => {
     db
       .prepare("INSERT INTO members (name, bank_code, account_no, account_name, email) VALUES (?, ?, ?, ?, ?)")
       .bind(request.name, request.bank_code, request.account_no, request.account_name, request.email),
+    logMemberJoin(db, c.get("actor")!, "last_insert_rowid()"),
     db.prepare("DELETE FROM join_requests WHERE id = ?").bind(id),
   ]);
   return c.body(null, 204);
@@ -117,6 +121,7 @@ joinRoutes.post("/:id/link", async (c) => {
          WHERE id = ? AND email IS NULL`,
       )
       .bind(request.email, request.bank_code, request.account_name, request.account_no, body.memberId),
+    logMemberJoin(db, c.get("actor")!, "?", body.memberId),
     db.prepare("DELETE FROM join_requests WHERE id = ?").bind(id),
   ]);
   return c.body(null, 204);

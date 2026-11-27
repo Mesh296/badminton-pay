@@ -23,14 +23,17 @@ export function useWrite(reload: () => Promise<boolean>, notify: (message: strin
       try {
         const res = await sendWrite(method, path, body).catch(() => null);
         if (!res) {
-          notify("Mất mạng. Thử lại.");
+          // The reply may be what got lost: show what the server now has
+          // before anyone taps again.
+          void reload();
+          notify("Mất mạng. Xem lại đã lưu chưa rồi hẵng thử lại.");
           return false;
         }
         if (!res.ok) {
           // Refused or gone: what this screen shows is out of date (signed out,
           // rights changed, row deleted by someone else). Reload so the controls
           // match what the account may still do.
-          if ([401, 403, 404].includes(res.status)) void reload();
+          if ([401, 403, 404, 409].includes(res.status)) void reload();
           notify(await errorMessage(res));
           return false;
         }

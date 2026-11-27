@@ -1,5 +1,5 @@
-import { env } from "cloudflare:workers";
-import { beforeEach, describe, expect, it } from "vitest";
+import { env, exports } from "cloudflare:workers";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AppState } from "../src/shared/types";
 import { ACTIVITY_SHOWN } from "../src/worker/load-state";
 import { ADMIN, call, clearTables, getState, sessionBody } from "./support/api-client";
@@ -17,6 +17,8 @@ beforeEach(async () => {
     const res = await call("POST", "/api/members", { name, email });
     ids.push(((await res.json()) as { id: number }).id);
   }
+  // Adding them logged three "joined" entries; the tests below start from an empty log.
+  await env.DB.prepare("DELETE FROM activity_log").run();
 });
 
 const stateAs = async (email: string) => (await (await call("GET", "/api/state", undefined, email)).json()) as AppState;
@@ -119,5 +121,51 @@ describe("fixing a transfer", () => {
     expect((await fix({}, ADMIN, id + 1000)).status).toBe(404);
     expect((await fix({ amount: 0 }, BINH)).status).toBe(400);
     expect((await fix({ fromId: ids[1] }, BINH)).status).toBe(400);
+  });
+});
+
+describe("news for the Thông báo tab", () => {
+  afterEach(() => vi.restoreAllMocks());
+  const actions = async () => (await getState()).activity.map((a) => [a.action, a.actorMemberId, a.before, a.after]);
+
+  it("records a member being added or joining, with who it was", async () => {
+    const res = await call("POST", "/api/members", { name: "Dũng" });
+    const { id } = (await res.json()) as { id: number };
+    expect(await actions()).toEqual([["member.join", null, null, { memberId: id }]]);
+  });
+
+  it("records a payment reported, withdrawn by the payer, and turned down by the receiver", async () => {
+    // An fronted a session Bình played in, so Bình owes An.
+    await call("POST", "/api/sessions", sessionBody(ids), AN);
+    await env.DB.prepare("DELETE FROM activity_log").run();
+    const claim = { date: "2026-11-27", fromId: ids[1], toId: ids[0], amount: 45_000, note: null };
+    await call("POST", "/api/claims", claim, BINH);
+    let [first] = (await getState()).claims;
+    await call("DELETE", `/api/claims/${first.id}`, undefined, BINH);
+    await call("POST", "/api/claims", claim, BINH);
+    [first] = (await getState()).claims;
+    await call("DELETE", `/api/claims/${first.id}`, undefined, AN);
+    expect(await actions()).toEqual([
+      ["claim.delete", ids[0], claim, null],
+      ["claim.create", ids[1], null, claim],
+      ["claim.delete", ids[1], claim, null],
+      ["claim.create", ids[1], null, claim],
+    ]);
+  });
+
+  it("records a member signing in with Google, and nothing for someone not in the group", async () => {
+    const signIn = async (email: string) => {
+      const claims = { aud: "test-client-id", iss: "https://accounts.google.com", email, email_verified: true };
+      const idToken = `x.${btoa(JSON.stringify(claims)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "")}.x`;
+      // Google's token endpoint answers with an ID token for this email.
+      vi.spyOn(globalThis, "fetch").mockImplementation(async () => Response.json({ id_token: idToken }));
+      const res = await exports.default.fetch(
+        new Request("http://app.test/api/auth/callback?code=c&state=s", { headers: { Cookie: "oauth_state=s" }, redirect: "manual" }),
+      );
+      expect(res.headers.get("Location")).toBe("/");
+    };
+    await signIn(AN);
+    await signIn("stranger@example.test");
+    expect(await actions()).toEqual([["auth.login", ids[0], null, null]]);
   });
 });

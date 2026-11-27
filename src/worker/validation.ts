@@ -71,6 +71,9 @@ export const linkSchema = z.object({ memberId });
 
 export const sessionSchema = z
   .object({
+    // Chosen by the app when the form opens, so saving again after a lost
+    // reply finds the session already there instead of adding it twice.
+    id: z.uuid("Dữ liệu không hợp lệ").optional(),
     date,
     payerId: memberId,
     courtAmount: amount,
@@ -81,14 +84,15 @@ export const sessionSchema = z
         z.object({
           memberId,
           drank: z.boolean(),
-          // Whole hours only (1h, 2h, 3h, never 1h30). Missing means 1, so a
-          // client from before hours existed still gets the equal split.
+          // Whole hours only (1h, 2h, 3h, never 1h30). Missing only from an
+          // app opened before hours existed: an edit keeps what is stored, a
+          // new session counts 1 hour (routes-sessions.ts).
           hours: z
             .number("Số giờ không hợp lệ")
             .int("Số giờ phải là số nguyên")
             .min(1, "Ít nhất 1 giờ")
             .max(MAX_HOURS, `Tối đa ${MAX_HOURS} giờ`)
-            .default(1),
+            .optional(),
         }),
       )
       .min(1, "Chọn người đi")

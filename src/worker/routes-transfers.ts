@@ -24,8 +24,15 @@ transferRoutes.post("/", async (c) => {
   if (!(await membersExist(c.env.DB, [body.fromId, body.toId]))) {
     return c.json({ error: "Có thành viên không tồn tại" }, 400);
   }
-
   const db = c.env.DB;
+  // The payer already reported this payment: it is recorded by confirming the
+  // report, never a second time here.
+  const reported = await db
+    .prepare("SELECT 1 FROM transfer_claims WHERE from_id = ? AND to_id = ?")
+    .bind(body.fromId, body.toId)
+    .first();
+  if (reported) return c.json({ error: "Người này đã báo chuyển: bấm Đã nhận ở thẻ chờ xác nhận" }, 409);
+
   const transfer: TransferSnapshot = body;
   const [inserted] = await db.batch([
     db

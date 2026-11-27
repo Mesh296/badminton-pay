@@ -42,10 +42,17 @@ export interface Transfer {
 export type SessionSnapshot = Session;
 export type TransferSnapshot = Omit<Transfer, "id">;
 
+/** Who joined the group, kept in the activity log. */
+export interface MemberEvent {
+  memberId: number;
+}
+
 /**
- * One change to the money records: who made it, when, and the record before
- * and after (null where it did not exist). Anyone can see these, so a session
- * or transfer entered against someone shows up with the name of who did it.
+ * One thing that happened, for the Thông báo tab: a change to the money
+ * records (who made it, when, the record before and after, null where it did
+ * not exist), a payment reported or withdrawn, someone joining or signing in.
+ * Anyone can see these, so a session or transfer entered against someone shows
+ * up with the name of who did it.
  */
 export type ActivityEntry = {
   id: number;
@@ -57,6 +64,10 @@ export type ActivityEntry = {
 } & (
   | { action: "session.create" | "session.update" | "session.delete"; before: SessionSnapshot | null; after: SessionSnapshot | null }
   | { action: "transfer.create" | "transfer.update" | "transfer.delete"; before: TransferSnapshot | null; after: TransferSnapshot | null }
+  /** A payer reported a payment (after), or the report was withdrawn or turned down (before) */
+  | { action: "claim.create" | "claim.delete"; before: TransferSnapshot | null; after: TransferSnapshot | null }
+  /** auth.login: the actor signed in; member.join: someone became a member */
+  | { action: "member.join" | "auth.login"; before: null; after: MemberEvent | null }
 );
 
 /** A signed-in person asking to join the group, waiting for an admin. */

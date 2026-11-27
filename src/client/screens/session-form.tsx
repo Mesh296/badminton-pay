@@ -2,7 +2,7 @@ import { useState } from "react";
 import { MAX_HOURS, splitSession } from "../../shared/money";
 import { LOGIN_URL } from "../api";
 import { useApp } from "../app-context";
-import { byName, formatMoney, todayIso } from "../format";
+import { byName, formatDayMonth, formatMoney, todayIso } from "../format";
 import { Icon } from "../icons";
 import { Avatar } from "../member-visuals";
 import { MoneyInput } from "../money-input";
@@ -40,6 +40,9 @@ export function SessionForm({ sessionId }: { sessionId?: string }) {
     () => new Map(editing?.attendees.map((a) => [a.memberId, { drank: a.drank, hours: a.hours }])),
   );
   const [saving, setSaving] = useState(false);
+  // A new session's id, fixed while the form is open: saving again after a
+  // lost reply finds it already saved instead of adding it twice.
+  const [newId] = useState(() => crypto.randomUUID());
 
   if (sessionId && !editing) return <p className="empty">Không tìm thấy buổi</p>;
   if (!editing && !canAdd) {
@@ -106,6 +109,11 @@ export function SessionForm({ sessionId }: { sessionId?: string }) {
   };
 
   const save = async () => {
+    // Two people (the payer and an admin) entering the same evening is the usual way a session gets counted twice.
+    const twin = state.sessions.find((s) => s.id !== editing?.id && s.date === date && s.payerId === payerId);
+    if (twin && !window.confirm(`Đã có buổi ${formatDayMonth(date)} do ${nameOf(twin.payerId)} ứng. Vẫn lưu thêm buổi này?`)) {
+      return;
+    }
     setSaving(true);
     const body = {
       date,
@@ -117,7 +125,7 @@ export function SessionForm({ sessionId }: { sessionId?: string }) {
     };
     const ok = editing
       ? await write("PUT", `/api/sessions/${editing.id}`, body)
-      : await write("POST", "/api/sessions", body);
+      : await write("POST", "/api/sessions", { ...body, id: newId });
     setSaving(false);
     if (ok) navigate("/");
   };

@@ -13,11 +13,15 @@ self.addEventListener("push", (event) => {
     message = { body: event.data ? event.data.text() : "" };
   }
   event.waitUntil(
-    self.registration.showNotification(message.title || "Tiền cầu lông", {
-      body: message.body || "",
-      icon: "/icon-192.png",
-      data: { url: message.url || "/" },
-    }),
+    Promise.all([
+      self.registration.showNotification(message.title || "Tiền cầu lông", {
+        body: message.body || "",
+        icon: "/icon-192.png",
+        data: { url: message.url || "/" },
+      }),
+      // An app already open on screen reloads its numbers, so nobody acts on a stale page.
+      self.clients.matchAll({ type: "window" }).then((windows) => windows.forEach((w) => w.postMessage("refresh"))),
+    ]),
   );
 });
 

@@ -1,4 +1,4 @@
-import type { ActivityEntry, Me, SessionSnapshot, TransferSnapshot } from "../shared/types";
+import type { ActivityEntry, Me, MemberEvent, SessionSnapshot, TransferSnapshot } from "../shared/types";
 import { attendeeFromRow, sessionFromRow, type AttendeeRow, type SessionRow, type TransferRow } from "./load-state";
 
 // The activity log: who changed which session or transfer, when, and what it
@@ -11,7 +11,7 @@ export function logActivity(
   actor: Me,
   action: ActivityEntry["action"],
   before: SessionSnapshot | TransferSnapshot | null,
-  after: SessionSnapshot | TransferSnapshot | null,
+  after: SessionSnapshot | TransferSnapshot | MemberEvent | null,
 ): D1PreparedStatement {
   return db
     .prepare(
@@ -25,6 +25,20 @@ export function logActivity(
       before && JSON.stringify(before),
       after && JSON.stringify(after),
     );
+}
+
+/**
+ * The log row for someone joining, to add to the batch right after the write
+ * that makes them a member. `memberIdSql` finds their id inside that batch,
+ * e.g. "(SELECT id FROM members WHERE email = ?)" or "last_insert_rowid()".
+ */
+export function logMemberJoin(db: D1Database, actor: Me, memberIdSql: string, ...binds: unknown[]): D1PreparedStatement {
+  return db
+    .prepare(
+      `INSERT INTO activity_log (at, actor_email, actor_member_id, action, before, after)
+       VALUES (?, ?, ?, 'member.join', NULL, json_object('memberId', ${memberIdSql}))`,
+    )
+    .bind(new Date().toISOString(), actor.email, actor.memberId, ...binds);
 }
 
 /** A session as stored now, or null when there is none with this id. */

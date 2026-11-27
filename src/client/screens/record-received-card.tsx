@@ -10,7 +10,7 @@ import { MoneyInput } from "../money-input";
 // made for an earlier suggestion may no longer be listed by the time it
 // arrives; this is how the receiver still records it.
 export function RecordReceivedCard({ receiver }: { receiver: Member }) {
-  const { state, balances, write } = useApp();
+  const { state, balances, write, nameOf } = useApp();
   const [open, setOpen] = useState(false);
   const [fromId, setFromId] = useState<number | "">("");
   const [amount, setAmount] = useState(0);
@@ -38,7 +38,7 @@ export function RecordReceivedCard({ receiver }: { receiver: Member }) {
     return (
       <button type="button" className="button secondary" onClick={() => setOpen(true)}>
         <Icon name="check" className="small" />
-        Ghi tiền đã nhận
+        Ghi tiền {receiver.name} đã nhận
       </button>
     );
   }
@@ -58,6 +58,10 @@ export function RecordReceivedCard({ receiver }: { receiver: Member }) {
         </select>
       </label>
       <MoneyInput label="Số tiền" value={amount} onChange={setAmount} />
+      {/* Same money twice: once here and once when confirming the report */}
+      {state.claims.some((c) => c.fromId === fromId && c.toId === receiver.id) && (
+        <p className="hint">{nameOf(Number(fromId))} đã báo chuyển: bấm "Đã nhận" ở thẻ chờ xác nhận thay vì ghi ở đây</p>
+      )}
       <div className="row-buttons">
         <button type="button" className="button secondary" onClick={close}>
           Hủy

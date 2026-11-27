@@ -25,6 +25,12 @@ const PATHS = {
       <path d="M18.5 14.8c1.7.8 2.7 2.4 3 5.2" />
     </>
   ),
+  bell: (
+    <>
+      <path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.5h-15z" />
+      <path d="M10 21a2 2 0 0 0 4 0" />
+    </>
+  ),
   plus: <path d="M12 5v14M5 12h14" />,
   "chevron-left": <path d="M15 5l-7 7 7 7" />,
   "chevron-right": <path d="M9 5l7 7-7 7" />,

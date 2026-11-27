@@ -3,6 +3,7 @@ import { computeBalances, suggestTransfers } from "../shared/money";
 import { AppContext, type AppContextValue } from "./app-context";
 import { GlassRefractionFilter } from "./glass-refraction-filter";
 import { Icon } from "./icons";
+import { ActivityFeed } from "./screens/activity-feed";
 import { Balances } from "./screens/balances";
 import { HistoryStats } from "./screens/history-stats";
 import { MemberDetail } from "./screens/member-detail";
@@ -13,11 +14,13 @@ import { TabBar, type Tab } from "./tab-bar";
 import { useAppState } from "./use-app-state";
 import { goBack, useHashRoute } from "./use-hash-route";
 import { useScreenTransition } from "./use-screen-transition";
+import { useUnseenActivity } from "./use-unseen-activity";
 import { useWrite } from "./use-write";
 
 const TABS: Tab[] = [
   { href: "#/", key: "", label: "Số dư", icon: "wallet" },
   { href: "#/history", key: "history", label: "Lịch sử", icon: "history" },
+  { href: "#/notifications", key: "notifications", label: "Thông báo", icon: "bell" },
   { href: "#/members", key: "members", label: "Thành viên", icon: "users" },
 ];
 
@@ -41,6 +44,7 @@ function screenFor(route: string[]): { title: string; body: ReactNode; tab: stri
   }
   if (section === "history") return { title: "Lịch sử", body: <HistoryStats />, tab: "history", sub: false };
   if (section === "members") return { title: "Thành viên", body: <Members />, tab: "members", sub: false };
+  if (section === "notifications") return { title: "Thông báo", body: <ActivityFeed />, tab: "notifications", sub: false };
   return { title: "Tiền cầu lông", body: <Balances />, tab: "", sub: false };
 }
 
@@ -89,6 +93,9 @@ export default function App() {
   const target = screenFor(route);
   const screen = screenFor(transition.shown);
   const tabIndex = TABS.findIndex((tab) => tab.key === target.tab);
+  // Marked seen once the feed is on screen, after it has read what was new.
+  const news = useUnseenActivity(state, screen.tab === "notifications" && !screen.sub);
+  const tabs = useMemo(() => TABS.map((tab) => (tab.key === "notifications" ? { ...tab, badge: news } : tab)), [news]);
 
   return (
     <>
@@ -134,7 +141,7 @@ export default function App() {
         </a>
       )}
 
-      <TabBar tabs={TABS} activeIndex={tabIndex} />
+      <TabBar tabs={tabs} activeIndex={tabIndex} />
 
       {/* Fixed under the top bar so it is seen wherever the page is scrolled; dismisses itself, or on tap. */}
       {notice && (

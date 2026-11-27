@@ -90,7 +90,7 @@ main {
   bottom: calc(env(safe-area-inset-bottom) + var(--tabbar-gap));
   z-index: 20;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(var(--tabs, 3), 1fr);
   width: min(calc(100% - 32px), 380px);
   padding: 6px;
   border-radius: 32px;
@@ -121,6 +121,13 @@ main {
   text-shadow: 0 0 8px var(--bg), 0 0 2px var(--bg);
 }
 .tabbar .tab[aria-current="page"] { color: var(--accent); }
+/* Something new behind the tab: a red dot at the icon's top right corner */
+.tab-icon { position: relative; display: grid; }
+.tab-dot { position: absolute; top: -2px; right: -4px; width: 9px; height: 9px; border-radius: 50%; background: var(--danger); box-shadow: 0 0 0 2px var(--bar-fill); }
+/* An entry in the Thông báo tab that is new since it was last open */
+.new-dot { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: var(--danger); vertical-align: 1px; }
+/* Read out by screen readers, not shown */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 /* The tab under a lifted lens is magnified, as if seen through it */
 .tabbar .tab[data-lens] { color: var(--text); transform: scale(1.18); }
 @media (hover: hover) {
@@ -142,7 +149,7 @@ main {
   top: 6px;
   bottom: 6px;
   left: 6px;
-  width: calc((100% - 12px) / 3);
+  width: calc((100% - 12px) / var(--tabs, 3));
   border-radius: var(--radius-pill);
   translate: var(--lens-x, 0%) 0;
   pointer-events: none;
@@ -202,17 +209,17 @@ main {
 /* The bar's body and rim, copied: inset by the bar's padding. Only inset shadows, so nothing
    reaches past the lens vertically and changes how WebKit sizes the filter. */
 .lens-copy-bar { position: absolute; inset: -6px; border-radius: 32px; background: var(--glass-fill); box-shadow: var(--glass-rim); }
-/* Must stay wider than the copy ever reaches (two slots) and match FRAME_SIDE. */
-.lens-frame { position: absolute; inset: 0 -200%; }
+/* Must stay wider than the copy ever reaches (one slot short of all of them) and match FRAME_SIDE. */
+.lens-frame { position: absolute; inset: 0 -300%; }
 .lens-copy {
   position: absolute;
   /* Undo the view's growth so the copy's slots sit exactly on the real slots. */
   top: calc(var(--grow-y) / (1 + 2 * var(--grow-y)) * 100%);
   left: calc(var(--grow-x) / (1 + 2 * var(--grow-x)) * 100%);
-  width: calc(300% / (1 + 2 * var(--grow-x)));
+  width: calc(var(--tabs, 3) * 100% / (1 + 2 * var(--grow-x)));
   height: calc(100% / (1 + 2 * var(--grow-y)));
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(var(--tabs, 3), 1fr);
   translate: var(--copy-x, 0%) 0;
 }
 

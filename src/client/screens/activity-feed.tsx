@@ -1,11 +1,14 @@
+import { useState } from "react";
 import type { ActivityEntry, SessionSnapshot, TransferSnapshot } from "../../shared/types";
 import { useApp } from "../app-context";
+import { isOwn, readSeen } from "../use-unseen-activity";
 import { formatDayMonth, formatMoney } from "../format";
-import { Icon } from "../icons";
+import { Icon, type IconName } from "../icons";
 
-// Who changed which session or transfer, newest first. Everyone sees it, so a
-// session entered against someone, or a payment undone, shows up with the
-// name of whoever did it. A deleted record can be put back from here by
+// The Thông báo tab: what happened, newest first. Who changed which session or
+// transfer, who reported or turned down a payment, who joined or signed in.
+// Everyone sees it, so a session entered against someone, or a payment undone,
+// shows up with the name of whoever did it. A deleted record can be put back from here by
 // whoever may enter it: its payer or receiver, or an admin.
 
 const total = (s: SessionSnapshot) => s.courtAmount + s.drinkAmount;
@@ -55,19 +58,20 @@ function transferChanges(before: TransferSnapshot, after: TransferSnapshot, name
   return parts.join(" · ") || "không đổi gì";
 }
 
-/** Members a change touches: the payer and attendees, or both ends of a transfer. */
+/** Members a change touches: the payer and attendees, both ends of a payment, or who joined. */
 function membersIn(entry: ActivityEntry): Set<number> {
   const ids = new Set<number>();
   for (const record of [entry.before, entry.after]) {
     if (!record) continue;
     if ("payerId" in record) [record.payerId, ...record.attendees.map((a) => a.memberId)].forEach((id) => ids.add(id));
-    else [record.fromId, record.toId].forEach((id) => ids.add(id));
+    else if ("fromId" in record) [record.fromId, record.toId].forEach((id) => ids.add(id));
+    else ids.add(record.memberId);
   }
   return ids;
 }
 
 interface Row {
-  isTransfer: boolean;
+  icon: IconName;
   title: string;
   detail: string;
   /** The session's page, while it still exists */
@@ -78,13 +82,15 @@ interface Row {
 
 export function ActivityFeed() {
   const { state, me, nameOf, actsAs, write } = useApp();
+  // Read before the tab marks everything seen, to point out what is new.
+  const [seenBefore] = useState(readSeen);
   if (state.activity.length === 0) return <p className="empty">Chưa có thay đổi nào</p>;
 
   const restoreSession = (s: SessionSnapshot) => {
     if (!window.confirm(`Khôi phục buổi ${formatDayMonth(s.date)}?`)) return;
     // Entries logged before hours existed have none: the server then counts 1 hour each, as they were split.
     const attendees = s.attendees.map(({ memberId, drank, hours }) => ({ memberId, drank, hours }));
-    // The server drops the old id and gives the session a new one.
+    // It comes back under its old id, which nothing else uses since it was deleted.
     void write("POST", "/api/sessions", { ...s, attendees });
   };
   const restoreTransfer = (t: TransferSnapshot) => {
@@ -109,7 +115,7 @@ export function ActivityFeed() {
         const session = (after ?? before)!;
         const verb = entry.action === "session.create" ? "thêm" : entry.action === "session.update" ? "sửa" : "xóa";
         return {
-          isTransfer: false,
+          icon: "calendar",
           title: `${who} ${verb} buổi ${formatDayMonth(session.date)}`,
           detail:
             before && after
@@ -126,12 +132,32 @@ export function ActivityFeed() {
         const { before, after } = entry;
         const transfer = (after ?? before)!;
         return {
-          isTransfer: true,
+          icon: "transfer",
           title: `${who} ${{ "transfer.create": "ghi", "transfer.update": "sửa", "transfer.delete": "hủy" }[entry.action]} ${nameOf(transfer.fromId)} → ${nameOf(transfer.toId)}`,
           detail: before && after ? transferChanges(before, after, nameOf) : formatMoney(transfer.amount),
           restore: before && !after && actsAs(before.toId) && !transferIsBack(before) ? () => restoreTransfer(before) : undefined,
         };
       }
+      case "claim.create":
+      case "claim.delete": {
+        const claim = (entry.after ?? entry.before)!;
+        // Withdrawn by the payer, or turned down by the receiver (or an admin).
+        const title =
+          entry.action === "claim.create"
+            ? `${who} báo đã chuyển cho ${nameOf(claim.toId)}`
+            : entry.actorMemberId === claim.fromId
+              ? `${who} hủy báo chuyển cho ${nameOf(claim.toId)}`
+              : `${who} báo chưa nhận được tiền của ${nameOf(claim.fromId)}`;
+        return { icon: "transfer", title, detail: formatMoney(claim.amount) };
+      }
+      case "member.join":
+        return {
+          icon: "users",
+          title: `${entry.after ? nameOf(entry.after.memberId) : who} vào nhóm`,
+          detail: entry.after && entry.actorMemberId !== entry.after.memberId ? `${who} duyệt` : "",
+        };
+      case "auth.login":
+        return { icon: "users", title: `${who} đăng nhập`, detail: "" };
     }
   }
 
@@ -141,18 +167,21 @@ export function ActivityFeed() {
         const who = entry.actorMemberId === null ? "Quản trị" : nameOf(entry.actorMemberId);
         // Someone else's change that touches the viewer's own money
         const aboutMe = me?.memberId != null && entry.actorMemberId !== me.memberId && membersIn(entry).has(me.memberId);
-        const { isTransfer, title, detail, href, restore } = describe(entry, who);
+        const isNew = entry.id > seenBefore && !isOwn(entry, me);
+        const { icon, title, detail, href, restore } = describe(entry, who);
 
         const body = (
           <>
             <span className="avatar symbol" aria-hidden="true">
-              <Icon name={isTransfer ? "transfer" : "calendar"} className="small" />
+              <Icon name={icon} className="small" />
             </span>
             <span className="row-main">
               <span className="row-title">{title}</span>
               <span className="row-sub">
+                {isNew && <span className="new-dot" aria-label="Mới" />}
                 {aboutMe && <span className="accent-text">Có bạn · </span>}
-                {detail} · {formatTime(entry.at)}
+                {detail && `${detail} · `}
+                {formatTime(entry.at)}
               </span>
             </span>
           </>

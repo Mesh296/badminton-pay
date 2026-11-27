@@ -55,27 +55,35 @@ export function MemberDetail({ id }: { id: number }) {
         <section className="card surface">
           <h3>Sẽ nhận</h3>
           <ul className="plain">
-            {toReceive.map((s) => (
-              <li key={s.fromId} className="split">
-                <span>{nameOf(s.fromId)}</span>
-                <span className="row-end">
-                  <span className="mono">{formatMoney(s.amount)}</span>
-                  {actsAs(id) && (
-                    <button type="button" className="link" onClick={() => confirmReceived(s.fromId, s.amount)}>
-                      Đã nhận
-                    </button>
-                  )}
-                </span>
-              </li>
-            ))}
+            {toReceive.map((s) => {
+              // A reported payment is answered on its own card above; recording
+              // it here as well would count the same money twice.
+              const reported = state.claims.some((c) => c.fromId === s.fromId && c.toId === id);
+              return (
+                <li key={s.fromId} className="split">
+                  <span>{nameOf(s.fromId)}</span>
+                  <span className="row-end">
+                    <span className="mono">{formatMoney(s.amount)}</span>
+                    {reported ? (
+                      <span className="muted">đã báo chuyển</span>
+                    ) : (
+                      actsAs(id) && (
+                        <button type="button" className="link" onClick={() => confirmReceived(s.fromId, s.amount)}>
+                          Đã nhận
+                        </button>
+                      )
+                    )}
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         </section>
       )}
 
-      {/* For payments that no longer match a suggestion above. Not while this
-          member owes: then the money goes the other way, and the payer's own
-          button is "Đã chuyển" on the card above. */}
-      {actsAs(id) && balance >= 0 && <RecordReceivedCard receiver={member} />}
+      {/* For payments that no longer match a suggestion above, even for someone
+          who owes again since (a new session can flip a balance). */}
+      {actsAs(id) && <RecordReceivedCard receiver={member} />}
 
       <h3 className="section-title">Tiền từng buổi</h3>
       {sessions.length === 0 ? (

@@ -18,8 +18,14 @@ const ownsSession = (c: Context<AppEnv>, payerId: number) => {
 const notOwner = (c: Context<AppEnv>) => c.json({ error: "Chỉ người ứng mới ghi được buổi này" }, 403);
 
 // The session as it will be stored. Shares are always computed here; the
-// client never supplies them.
-function toSnapshot(id: string, input: SessionInput): SessionSnapshot {
+// client never supplies them. An attendee sent without hours keeps the hours
+// stored for them (`stored`), or counts 1.
+function toSnapshot(id: string, body: SessionInput, stored?: SessionSnapshot | null): SessionSnapshot {
+  const storedHours = new Map(stored?.attendees.map((a) => [a.memberId, a.hours]));
+  const input = {
+    ...body,
+    attendees: body.attendees.map((a) => ({ ...a, hours: a.hours ?? storedHours.get(a.memberId) ?? 1 })),
+  };
   const shares = splitSession(input);
   return {
     id,
@@ -65,7 +71,9 @@ sessionRoutes.post("/", async (c) => {
   if (!ownsSession(c, body.payerId)) return notOwner(c);
 
   const db = c.env.DB;
-  const id = crypto.randomUUID();
+  const id = body.id ?? crypto.randomUUID();
+  // Saved already: the app is retrying after its reply was lost.
+  if (await db.prepare("SELECT 1 FROM sessions WHERE id = ?").bind(id).first()) return c.json({ id }, 200);
   const session = toSnapshot(id, body);
   // One batch = one transaction: a session never exists without its attendees or its log entry.
   await db.batch([
@@ -92,7 +100,7 @@ sessionRoutes.put("/:id", async (c) => {
   // The payer cannot be handed to someone else either.
   if (!ownsSession(c, body.payerId)) return notOwner(c);
 
-  const updated = toSnapshot(id, body);
+  const updated = toSnapshot(id, body, existing);
   try {
     await db.batch([
       db

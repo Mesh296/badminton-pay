@@ -50,7 +50,15 @@ export function useAppState(notify: (message: string) => void) {
       if (!(await reload())) notify("Chưa tải được số mới");
     };
     document.addEventListener("visibilitychange", onVisible);
-    return () => document.removeEventListener("visibilitychange", onVisible);
+    // The service worker says when a notification arrived while the app is open.
+    const onMessage = (event: MessageEvent) => {
+      if (event.data === "refresh") void reload();
+    };
+    navigator.serviceWorker?.addEventListener("message", onMessage);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      navigator.serviceWorker?.removeEventListener("message", onMessage);
+    };
   }, [reload, notify]);
 
   return { state, loadFailed, reload };

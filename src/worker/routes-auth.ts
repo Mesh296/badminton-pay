@@ -2,6 +2,7 @@ import { Hono, type Context } from "hono";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { loginConfigured, fromBase64Url, SESSION_COOKIE, SESSION_SECONDS, signSession } from "./auth-session";
 import type { AppEnv } from "./index";
+import { logActivity } from "./activity-log";
 
 // Google sign-in, authorization-code flow done entirely by redirects:
 //   /api/auth/login -> Google -> /api/auth/callback -> session cookie -> app.
@@ -104,8 +105,15 @@ authRoutes.get("/callback", async (c) => {
     return failed(c);
   }
 
-  const session = await signSession(claims.email.toLowerCase(), c.env.SESSION_SECRET);
+  const email = claims.email.toLowerCase();
+  const session = await signSession(email, c.env.SESSION_SECRET);
   setCookie(c, SESSION_COOKIE, session, cookieOptions(c, SESSION_SECONDS));
+  // Members' sign-ins show in the Thông báo tab. Someone not in the group yet
+  // shows up as a request to join instead.
+  const member = await c.env.DB.prepare("SELECT id FROM members WHERE email = ?").bind(email).first<{ id: number }>();
+  if (member) {
+    await logActivity(c.env.DB, { email, memberId: member.id, admin: false }, "auth.login", null, null).run();
+  }
   return c.redirect("/");
 });
 

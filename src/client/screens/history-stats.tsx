@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { ActivityFeed } from "./activity-feed";
 import type { Session, Transfer } from "../../shared/types";
 import { useApp } from "../app-context";
 import { byName, formatDate, formatDayMonth, formatMoney, formatMonth } from "../format";
@@ -11,11 +10,10 @@ type Entry = { date: string; session: Session } | { date: string; transfer: Tran
 const TABS = [
   { key: "history", label: "Lịch sử" },
   { key: "stats", label: "Thống kê" },
-  { key: "log", label: "Nhật ký" },
 ] as const;
 
-// Past sessions and transfers, simple totals per month and per member, and
-// the log of who changed what.
+// Past sessions and transfers, and simple totals per month and per member.
+// Who changed what is in the Thông báo tab.
 export function HistoryStats() {
   const [tab, setTab] = useState<(typeof TABS)[number]["key"]>("history");
   const index = TABS.findIndex((t) => t.key === tab);
@@ -28,7 +26,7 @@ export function HistoryStats() {
           </button>
         ))}
       </div>
-      {tab === "history" ? <History /> : tab === "stats" ? <Stats /> : <ActivityFeed />}
+      {tab === "history" ? <History /> : <Stats />}
     </>
   );
 }

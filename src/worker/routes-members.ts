@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { logMemberJoin } from "./activity-log";
 import { intParam, readBody } from "./http-helpers";
 import type { AppEnv } from "./index";
 import { memberSchema } from "./validation";
@@ -37,6 +38,7 @@ memberRoutes.post("/", async (c) => {
         "INSERT INTO members (name, bank_code, account_no, account_name, active, email) VALUES (?, ?, ?, ?, ?, ?) RETURNING id",
       )
       .bind(body.name, body.bankCode, body.accountNo, body.accountName, body.active ? 1 : 0, body.email),
+    logMemberJoin(db, c.get("actor")!, "last_insert_rowid()"),
     dropAnsweredRequests(db),
   ]);
   return c.json({ id: inserted.results[0].id }, 201);

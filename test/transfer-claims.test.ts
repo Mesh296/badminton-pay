@@ -76,14 +76,47 @@ describe("answering a report", () => {
 
   it("the receiver may turn it down and the payer take it back; nobody else may remove it", async () => {
     await report(45_000);
-    await report(10_000);
-    const [first, second] = (await stateAs(null)).claims;
+    const [first] = (await stateAs(null)).claims;
     expect((await call("DELETE", `/api/claims/${first.id}`, undefined, OTHER)).status).toBe(403);
     expect((await call("DELETE", `/api/claims/${first.id}`, undefined, RECEIVER)).status).toBe(204);
+    await report(10_000);
+    const [second] = (await stateAs(null)).claims;
     expect((await call("DELETE", `/api/claims/${second.id}`, undefined, PAYER)).status).toBe(204);
     expect((await call("DELETE", `/api/claims/${second.id}`, undefined, PAYER)).status).toBe(404);
     const state = await stateAs(null);
     expect(state.claims).toEqual([]);
     expect(state.transfers).toEqual([]);
+  });
+});
+
+describe("never counting the same payment twice", () => {
+  it("keeps one open report per payer and receiver", async () => {
+    expect((await report()).status).toBe(201);
+    expect((await report()).status).toBe(409);
+    expect((await stateAs(null)).claims).toHaveLength(1);
+  });
+
+  it("refuses a report from someone who owes nothing, e.g. already recorded by the receiver", async () => {
+    const recorded = await call("POST", "/api/transfers", { date: "2026-11-27", fromId: payer, toId: receiver, amount: 45_000 }, RECEIVER);
+    expect(recorded.status).toBe(201);
+    expect((await report()).status).toBe(409);
+    expect((await stateAs(null)).claims).toEqual([]);
+  });
+
+  it("does not let the receiver record directly a payment waiting as a report", async () => {
+    await report();
+    const direct = await call("POST", "/api/transfers", { date: "2026-11-27", fromId: payer, toId: receiver, amount: 45_000 }, RECEIVER);
+    expect(direct.status).toBe(409);
+    expect((await stateAs(null)).transfers).toEqual([]);
+  });
+
+  it("does not withdraw a report that was confirmed a moment ago", async () => {
+    await report();
+    const [claim] = (await stateAs(null)).claims;
+    expect((await call("POST", `/api/claims/${claim.id}/confirm`, undefined, RECEIVER)).status).toBe(201);
+    expect((await call("DELETE", `/api/claims/${claim.id}`, undefined, PAYER)).status).toBe(404);
+    const state = await stateAs(null);
+    expect(state.transfers).toHaveLength(1);
+    expect(state.activity.map((a) => a.action)).not.toContain("claim.delete");
   });
 });
