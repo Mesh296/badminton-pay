@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { parseCssTimeMs } from "../src/client/css-time";
 import { formatMoney, formatMoneyInput, formatMonth, parseMoney } from "../src/client/format";
-import { stripDiacritics, transferMemo, vietQrUrl } from "../src/shared/vietqr";
+import { BANK_APPS, BANKS } from "../src/shared/banks";
+import { bankAppUrl, stripDiacritics, transferMemo, vietQrUrl } from "../src/shared/vietqr";
 
 describe("CSS timing tokens", () => {
   it("reads both units, since the production build rewrites 420ms as .42s", () => {
@@ -56,5 +57,27 @@ describe("VietQR", () => {
     expect(url.searchParams.get("amount")).toBe("66000");
     expect(url.searchParams.get("addInfo")).toBe("Cau long An");
     expect(url.searchParams.get("accountName")).toBe("TRAN VAN A");
+  });
+});
+
+describe("bank app deeplink", () => {
+  it("names the receiving account as number@bank, with amount, memo, name and the return page the service requires", () => {
+    const url = new URL(
+      bankAppUrl({ appId: "mb", bankShort: "vcb", accountNo: "0123456789", accountName: "NGUYEN VAN A", amount: 85_000, memo: "Cau long Minh" }),
+    );
+    expect(url.origin + url.pathname).toBe("https://dl.vietqr.io/pay");
+    expect(Object.fromEntries(url.searchParams)).toEqual({
+      app: "mb",
+      ba: "0123456789@vcb",
+      am: "85000",
+      tn: "Cau long Minh",
+      url: "https://vietqr.io",
+      bn: "NGUYEN VAN A",
+    });
+  });
+
+  it("has a short code for every bank and no duplicate app", () => {
+    expect(BANKS.every((b) => /^[a-z]+$/.test(b.short))).toBe(true);
+    expect(new Set(BANK_APPS.map((a) => a.id)).size).toBe(BANK_APPS.length);
   });
 });

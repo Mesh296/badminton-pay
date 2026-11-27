@@ -31,6 +31,7 @@ Deploy, đăng nhập Google, cập nhật, sao lưu:
 - Tiền sân + cầu chia đều cho người đi; tiền nước chia đều cho người uống.
 - Mỗi phần làm tròn lên 1.000đ. Người ứng tiền được ghi nhận tổng các phần đã chia, nên phần dư do làm tròn thuộc về người ứng.
 - Số dư mỗi người = tiền đã ứng − phần phải chia + tiền đã chuyển − tiền đã nhận. Tổng số dư cả nhóm luôn bằng 0.
+- App gợi ý ai chuyển cho ai, kèm mã QR và nút mở thẳng app ngân hàng trên iPhone (MB Bank, VietinBank, BIDV, ACB, OCB tự điền sẵn STK, số tiền, nội dung; app khác chỉ mở, STK được chép sẵn).
 - App gợi ý ai chuyển cho ai; người nhận tiền bấm "Đã nhận" khi tiền về. Tiền về không khớp gợi ý nào (gợi ý đã đổi vì có buổi mới) thì người nhận bấm "Ghi tiền đã nhận" ở trang của mình, chọn người chuyển và số tiền.
 
 ## Ai làm được gì

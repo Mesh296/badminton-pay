@@ -34,3 +34,34 @@ export function vietQrUrl(input: VietQrInput): string {
   const path = `${input.bankCode}-${encodeURIComponent(input.accountNo)}-compact2.png`;
   return `https://img.vietqr.io/image/${path}?${params}`;
 }
+
+export interface BankAppLinkInput {
+  /** Which banking app to open, from BANK_APPS */
+  appId: string;
+  /** VietQR short code of the receiving bank, e.g. "mb" */
+  bankShort: string;
+  accountNo: string;
+  accountName: string | null;
+  amount: number;
+  memo: string;
+}
+
+/**
+ * Link that opens a banking app on the phone through VietQR's deeplink service
+ * (https://www.vietqr.io/danh-sach-api/deeplink-app-ngan-hang/). Apps that
+ * support it open on the transfer already filled in; the rest just open.
+ */
+export function bankAppUrl(input: BankAppLinkInput): string {
+  const params = new URLSearchParams({
+    app: input.appId,
+    ba: `${input.accountNo}@${input.bankShort}`,
+    am: String(input.amount),
+    tn: input.memo,
+    // Where the bank app may send the user after paying. The service requires
+    // one and fills in the transfer only when it is there; VietQR's own site
+    // keeps this app's address out of a third party's logs.
+    url: "https://vietqr.io",
+  });
+  if (input.accountName) params.set("bn", input.accountName);
+  return `https://dl.vietqr.io/pay?${params}`;
+}

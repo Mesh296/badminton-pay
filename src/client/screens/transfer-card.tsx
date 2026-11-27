@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { BANKS } from "../../shared/banks";
+import { BANK_APPS, BANKS } from "../../shared/banks";
 import type { Member } from "../../shared/types";
-import { transferMemo, vietQrUrl } from "../../shared/vietqr";
+import { bankAppUrl, transferMemo, vietQrUrl } from "../../shared/vietqr";
 import { useApp } from "../app-context";
 import { formatMoney, todayIso } from "../format";
 import { Icon } from "../icons";
@@ -13,19 +13,33 @@ interface Props {
   amount: number;
 }
 
-// One suggested payment: who to pay, how much and the VietQR code. Only the
-// receiver (or an admin) gets the button that records the money as received;
-// the payer sees that it is waiting for them.
+/** The banking app this phone pays with, remembered between visits */
+const BANK_APP_KEY = "bank-app";
+
+// One suggested payment: who to pay, how much, the VietQR code, and a button
+// that opens the payer's banking app on the transfer. Only the receiver (or an
+// admin) gets the button that records the money as received; the payer sees
+// that it is waiting for them.
 export function TransferCard({ from, to, amount }: Props) {
-  const { write, actsAs } = useApp();
+  const { write, actsAs, me } = useApp();
   const canConfirm = actsAs(to.id);
   const [confirming, setConfirming] = useState(false);
   const [paid, setPaid] = useState(amount);
   const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [appId, setAppId] = useState(() => localStorage.getItem(BANK_APP_KEY) ?? "");
 
-  const bankName = BANKS.find((bank) => bank.code === to.bankCode)?.name;
+  const bank = BANKS.find((b) => b.code === to.bankCode);
   const hasAccount = Boolean(to.bankCode && to.accountNo);
+  const memo = transferMemo(from.name);
+  const app = BANK_APPS.find((a) => a.id === appId);
+  // The receiver has nothing to pay here.
+  const showBankApp = Boolean(bank) && me?.memberId !== to.id;
+
+  const chooseApp = (id: string) => {
+    setAppId(id);
+    localStorage.setItem(BANK_APP_KEY, id);
+  };
 
   const copyAccount = async () => {
     try {
@@ -63,7 +77,7 @@ export function TransferCard({ from, to, amount }: Props) {
               accountNo: to.accountNo!,
               accountName: to.accountName,
               amount,
-              memo: transferMemo(from.name),
+              memo,
             })}
             alt={`Mã QR chuyển ${formatMoney(amount)} cho ${to.name}`}
             width={240}
@@ -73,13 +87,62 @@ export function TransferCard({ from, to, amount }: Props) {
             referrerPolicy="no-referrer"
           />
           <p className="account">
-            {bankName} · <span className="mono">{to.accountNo}</span>
+            {bank?.name} · <span className="mono">{to.accountNo}</span>
             {to.accountName && <> · {to.accountName}</>}
           </p>
           <button type="button" className="button secondary" onClick={copyAccount}>
             <Icon name={copied ? "check" : "copy"} className="small" />
             {copied ? "Đã chép" : "Chép STK"}
           </button>
+
+          {showBankApp && (
+            <div className="bank-app">
+              <label className="field">
+                <span>Mở app ngân hàng</span>
+                <select value={appId} onChange={(e) => chooseApp(e.target.value)}>
+                  <option value="">Chọn app của bạn</option>
+                  <optgroup label="Tự điền sẵn">
+                    {BANK_APPS.filter((a) => a.autofill).map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="Chỉ mở app">
+                    {BANK_APPS.filter((a) => !a.autofill).map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+              </label>
+              {app && (
+                <>
+                  <a
+                    className="button"
+                    href={bankAppUrl({
+                      appId: app.id,
+                      bankShort: bank!.short,
+                      accountNo: to.accountNo!,
+                      accountName: to.accountName,
+                      amount,
+                      memo,
+                    })}
+                    rel="noreferrer"
+                    // Apps that do not fill in the transfer get the account number on the clipboard to paste.
+                    onClick={app.autofill ? undefined : copyAccount}
+                  >
+                    <Icon name="wallet" className="small" />
+                    Mở {app.name}
+                  </a>
+                  <p className="hint">
+                    {app.autofill ? "Tự điền STK, số tiền và nội dung" : "App này chưa tự điền: STK được chép sẵn để dán, số tiền tự nhập"}
+                  </p>
+                </>
+              )}
+            </div>
+          )}
         </>
       ) : (
         <p className="muted">{to.name} chưa có số tài khoản. Hỏi trực tiếp.</p>
