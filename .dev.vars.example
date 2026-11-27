@@ -1,0 +1,8 @@
+# Copy to .dev.vars for local development. Never commit .dev.vars.
+# Google OAuth client (Google Cloud Console > APIs & Services > Credentials > Web application).
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+# Signs the sign-in cookie. At least 32 random characters, e.g. from: openssl rand -base64 32
+SESSION_SECRET=
+# Comma-separated Google emails that may manage members and fix any entry.
+ADMIN_EMAILS=

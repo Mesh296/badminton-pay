@@ -1,0 +1,26 @@
+# The app plus Caddy in front of it. Caddy gets and renews the HTTPS
+# certificate by itself for the address in PUBLIC_URL (see .env.example).
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      # The whole database is one SQLite file in this volume.
+      - app-data:/data
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Certificates; keeping them avoids asking for new ones on every restart.
+      - caddy-data:/data
+
+volumes:
+  app-data:
+  caddy-data:

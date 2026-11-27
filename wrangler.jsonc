@@ -1,0 +1,29 @@
+/**
+ * Wrangler configuration.
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "badminton-pay",
+	"main": "src/worker/index.ts",
+	"compatibility_date": "2026-11-23",
+	"assets": {
+		// Unknown paths fall back to index.html so hash/SPA routes work.
+		"not_found_handling": "single-page-application",
+		// The Worker only handles the API; everything else is served as a static asset.
+		"run_worker_first": ["/api/*"]
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "badminton-pay",
+			// Replaced with the real id from `wrangler d1 create` at first deploy.
+			"database_id": "local-placeholder",
+			"migrations_dir": "migrations"
+		}
+	],
+	"observability": {
+		"enabled": true
+	},
+	"upload_source_maps": true
+}

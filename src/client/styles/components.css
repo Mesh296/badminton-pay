@@ -1,0 +1,233 @@
+/* Buttons, lists, cards, forms. Flat white cards, pill controls. */
+
+/* Text */
+.muted, .hint, .row-sub, .eyebrow { color: var(--muted); }
+.hint, .eyebrow { font-size: var(--text-caption); line-height: 1.4; letter-spacing: 0; }
+.row-sub { font-size: var(--text-small); line-height: 1.4; letter-spacing: 0; }
+.hint { padding: 0 var(--sp-8); text-align: center; }
+.mono { font-variant-numeric: tabular-nums; }
+.section-title { margin-top: var(--sp-8); padding: 0 var(--sp-8); font-size: var(--text-title); }
+.empty { display: grid; gap: var(--sp-16); justify-items: center; padding: 48px 0; color: var(--muted); text-align: center; }
+.error { color: var(--danger); font-size: var(--text-small); }
+
+/* Balance: plain text, no badge. The wording carries the meaning. */
+.balance { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.balance.credit { color: var(--accent); }
+.balance.zero { color: var(--muted); font-weight: 400; }
+.balance.large { font-size: var(--text-title); }
+
+/* Avatar: gray disc with the member's initial */
+.avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-pill);
+  background: var(--active);
+  color: var(--text);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.avatar.large { width: 84px; height: 84px; font-size: 34px; }
+.avatar.small { width: 32px; height: 32px; background: var(--surface); font-size: var(--text-small); }
+/* Icon disc used for sessions and transfers in lists */
+.avatar.symbol { background: var(--primary); color: var(--on-primary); }
+
+/* Buttons: black pill for the main action, white outlined pill for the rest */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-8);
+  min-height: 52px;
+  padding: 0 var(--sp-24);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: var(--text-body);
+  font-weight: 600;
+  text-align: center;
+}
+.button.big { width: 100%; }
+.button.secondary { min-height: 46px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); color: var(--text); }
+.button.danger { width: 100%; min-height: 46px; background: transparent; color: var(--danger); }
+.button:disabled { background: var(--disabled); box-shadow: none; color: var(--muted); cursor: not-allowed; }
+.row-buttons { display: flex; gap: var(--sp-12); }
+.row-buttons > * { flex: 1; }
+.link, .link-text { color: var(--muted); font-size: var(--text-small); font-weight: 600; }
+.link { min-width: 44px; min-height: 44px; padding: 0 var(--sp-4); border: 0; background: none; }
+
+/* Lists: rows separated by inset hairlines */
+.list { padding: var(--sp-4) 0; }
+.list > li { margin: 0 var(--sp-20); }
+.list > li + li { border-top: 1px solid var(--line); }
+/* A row that is itself the list item already has side margins, so it must not also be full width. */
+.list > li.list-row { width: auto; }
+.list-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-12);
+  width: 100%;
+  min-height: 64px;
+  padding: var(--sp-8) 0;
+  border: 0;
+  background: none;
+  text-align: left;
+}
+.row-main { flex: 1; min-width: 0; }
+.row-title, .row-sub { display: block; overflow-wrap: anywhere; }
+.row-title { font-weight: 600; }
+.row-end { flex: none; display: flex; align-items: center; gap: var(--sp-8); font-weight: 600; font-variant-numeric: tabular-nums; }
+.chevron { color: var(--subtle); }
+.plain { display: grid; gap: var(--sp-8); }
+.split { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-12); }
+
+/* Cards */
+.card, .hero { display: grid; gap: var(--sp-16); padding: var(--sp-24); }
+.card h3 { font-size: var(--text-body); font-weight: 500; letter-spacing: -0.01em; }
+.card h3 strong { font-weight: 700; }
+.hero { justify-items: center; gap: var(--sp-8); padding: var(--sp-32) var(--sp-24); text-align: center; }
+.hero h2 { font-size: var(--text-heading); line-height: 1.2; }
+.hero-amount { font-size: var(--text-display); font-weight: 700; line-height: 1.1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.hero .button { margin-top: var(--sp-16); }
+.hero .avatar { margin-bottom: var(--sp-8); }
+/* White QR tile with a hairline ring, so it reads as an object on the white card */
+.qr { justify-self: center; max-width: 100%; height: auto; padding: var(--sp-8); border-radius: 20px; background: var(--qr-tile); box-shadow: 0 0 0 1px var(--line); }
+.account { color: var(--muted); font-size: var(--text-small); text-align: center; overflow-wrap: anywhere; }
+.confirm { display: grid; gap: var(--sp-12); }
+/* A form opened inside a list row: no card within a card */
+.list .card.surface { padding: var(--sp-16) 0; border-radius: 0; }
+
+/* Forms: soft gray fields on white cards. 16px text stops iOS from zooming. */
+.form { display: grid; gap: var(--sp-16); }
+/* Groups a form's controls so they can be made read-only together; no box of its own */
+fieldset.form { min-width: 0; margin: 0; padding: 0; border: 0; }
+/* Read-only session: who came and who drank must stay readable */
+fieldset:disabled .toggle[aria-pressed="true"] { opacity: 1; }
+.field { display: grid; gap: var(--sp-8); }
+.field > span { font-size: var(--text-caption); font-weight: 600; letter-spacing: 0; }
+.field input, .field select {
+  width: 100%;
+  min-width: 0;
+  min-height: 52px;
+  padding: 0 var(--sp-16);
+  border: 0;
+  border-radius: var(--radius-field);
+  background: var(--fill);
+  font-size: var(--text-body);
+  font-weight: 500;
+  text-align: left;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.field select {
+  padding-right: 44px;
+  /* chevron drawn in the muted gray (a data URI cannot read CSS variables) */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 18px;
+}
+/* Money field: the fixed ".000đ" after the number shows the unit is thousands */
+.money { position: relative; }
+.money input { padding-right: 84px; }
+.money-suffix { position: absolute; top: 50%; right: var(--sp-16); color: var(--muted); font-weight: 500; transform: translateY(-50%); pointer-events: none; }
+@media (prefers-color-scheme: dark) {
+  /* same chevron in the dark theme's muted gray */
+  .field select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a3a3a3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  }
+}
+.field input:focus-visible, .field select:focus-visible { outline: 0; box-shadow: inset 0 0 0 2px var(--primary); }
+.check { display: flex; align-items: center; gap: var(--sp-12); min-height: 44px; font-size: var(--text-small); }
+.check input { width: 22px; height: 22px; accent-color: var(--accent); }
+
+/* Attendee picker: gray pills; black when the person came, violet when they drank */
+.picker { display: grid; gap: var(--sp-8); }
+.picker li { display: flex; gap: var(--sp-8); }
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+  min-height: 52px;
+  padding: 0 var(--sp-16);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--fill);
+  font-weight: 500;
+}
+.toggle.name { flex: 1; min-width: 0; padding-left: 10px; text-align: left; }
+.toggle.name .grow { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.toggle.drink { flex: none; justify-content: center; width: 96px; color: var(--muted); }
+.toggle.name[aria-pressed="true"] { background: var(--primary); color: var(--on-primary); }
+.toggle.drink[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+.toggle:disabled { opacity: 0.45; cursor: not-allowed; }
+.share { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* Sticky save bar: solid white panel floating above the tab bar */
+.savebar {
+  position: sticky;
+  bottom: calc(var(--tabbar) + var(--tabbar-gap) + env(safe-area-inset-bottom) + var(--sp-12));
+  z-index: 10;
+  display: grid;
+  gap: var(--sp-12);
+  padding: var(--sp-16);
+  border-radius: var(--radius-card);
+  /* Solid, not translucent: black attendee pills scroll right behind this text. */
+  background: var(--surface);
+  box-shadow: var(--float-shadow);
+}
+.savebar p { padding: 0 var(--sp-4); font-size: var(--text-caption); line-height: 1.4; letter-spacing: 0; text-align: center; }
+
+/* Segmented control: white track, black thumb */
+.segmented {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: var(--sp-4);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+}
+.segmented::before {
+  content: "";
+  position: absolute;
+  top: var(--sp-4);
+  bottom: var(--sp-4);
+  left: var(--sp-4);
+  width: calc((100% - 8px) / 2);
+  border-radius: var(--radius-pill);
+  background: var(--primary);
+  transform: translateX(calc(var(--seg-index, 0) * 100%));
+}
+.segmented button { position: relative; min-height: 44px; border: 0; border-radius: var(--radius-pill); background: none; color: var(--muted); font-size: var(--text-small); font-weight: 600; }
+.segmented button[aria-selected="true"] { color: var(--on-primary); }
+
+.table { width: 100%; border-collapse: collapse; font-size: var(--text-small); }
+.table th, .table td { padding: 14px 0; border-top: 1px solid var(--line); text-align: right; font-weight: 500; font-variant-numeric: tabular-nums; }
+.table th:first-child { text-align: left; }
+.table thead th { border-top: 0; font-size: var(--text-caption); font-weight: 500; letter-spacing: 0; color: var(--muted); }
+.table tbody th { font-weight: 600; }
+.table-card { padding: var(--sp-8) var(--sp-20); }
+
+/* Toast: fixed under the top bar so an error is seen at any scroll position */
+.toast {
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + 68px);
+  left: var(--sp-16);
+  right: var(--sp-16);
+  z-index: 50;
+  max-width: 420px;
+  min-height: 48px;
+  margin: 0 auto;
+  padding: var(--sp-12) var(--sp-20);
+  border: 0;
+  border-radius: 20px;
+  background: var(--primary);
+  box-shadow: var(--float-shadow);
+  color: var(--on-primary);
+  font-size: var(--text-small);
+  font-weight: 500;
+  text-align: left;
+}

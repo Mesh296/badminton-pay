@@ -1,0 +1,5 @@
+# PUBLIC_URL comes from .env. With an https:// address Caddy obtains the
+# certificate automatically; with http://<ip> it serves plain HTTP.
+{$PUBLIC_URL} {
+	reverse_proxy app:8787
+}

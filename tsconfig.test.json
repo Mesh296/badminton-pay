@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.worker.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo",
+    "moduleResolution": "bundler",
+    "module": "esnext",
+    // Adds the `cloudflare:test` and `cloudflare:workers` module types.
+    "types": ["./worker-configuration.d.ts", "@cloudflare/vitest-plugin/types"]
+  },
+  "include": ["test", "src/shared"]
+}

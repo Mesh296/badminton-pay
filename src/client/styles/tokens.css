@@ -1,0 +1,186 @@
+/* Design tokens. Monochrome theme: soft gray canvas, white cards, black type
+   and black primary buttons, one muted violet for "on" states. The dark theme
+   (follows the system setting) inverts it: near-black canvas, white buttons.
+   Components use the semantic names below; raw colors live only here. */
+
+:root {
+  color-scheme: light dark;
+
+  /* Palette */
+  --canvas: #f2f2f2;
+  --white: #ffffff;
+  --ink: #111111;
+  --gray: #666666;
+  --faint: #a8a8a8;
+  --hairline: #e6e6e6;
+  --chip: #ebebeb;
+  --violet: #6366c8;
+  --red: #c0392b;
+
+  /* Semantic roles */
+  --bg: var(--canvas);
+  --surface: var(--white);
+  --text: var(--ink);
+  --muted: var(--gray);
+  --subtle: var(--faint); /* chevrons and other non-text marks */
+  --line: var(--hairline);
+  --fill: var(--canvas); /* inputs and unselected chips, sitting on white cards */
+  --active: var(--chip); /* active tab pill, avatar disc, segmented track */
+  --primary: var(--ink); /* primary buttons and selected chips */
+  --on-primary: var(--white);
+  --accent: var(--violet); /* "on" toggles and positive balances */
+  --on-accent: var(--white);
+  --danger: var(--red); /* errors and destructive actions only */
+  --disabled: #d9d9d9;
+  --qr-tile: #ffffff; /* stays white in both themes so bank apps can scan the code */
+
+  /* Glass, for the floating controls (tab bar, add button, back button).
+     Built from a translucent fill, backdrop blur, and a stack of inset
+     highlights that draw a bright rim on the top-right and bottom-left edges. */
+  --glass-blur: 3px; /* very light, so what scrolls behind stays clearly visible */
+  --glass-shadow: 0 18px 40px rgb(0 0 0 / 0.14), 0 4px 10px rgb(0 0 0 / 0.08);
+  --glass-fill: rgb(255 255 255 / 0.12);
+  --glass-rim: 
+    inset 0 0 0 1px rgb(255 255 255 / 0.7), inset 0 2px 1px -1px rgb(255 255 255 / 1),
+    inset 0 8px 10px -8px rgb(255 255 255 / 0.9), inset 0 -2px 1px -1px rgb(255 255 255 / 0.6),
+    inset 0 -9px 12px -9px rgb(0 0 0 / 0.14), inset 0 0 10px rgb(0 0 0 / 0.07);
+  --glass-sheen: rgb(255 255 255 / 0.35);
+  --glass-active: rgb(0 0 0 / 0.07); /* flat pill behind the current tab, at rest */
+  /* Lens: the glass bubble the selection lifts into while it moves. Bright rim,
+     a hint of red/blue fringe at its sides, soft drop shadow. */
+  --lens-fill: radial-gradient(130% 130% at 30% 12%, rgb(255 255 255 / 0.3), rgb(255 255 255 / 0.02) 50%, rgb(255 255 255 / 0.14) 100%);
+  --lens-rim: 
+    inset 0 0 0 1px rgb(255 255 255 / 0.85), inset 0 2px 1px -1px rgb(255 255 255 / 1),
+    inset 0 -2px 1px -1px rgb(255 255 255 / 0.8), inset 5px 0 7px -5px rgb(255 80 80 / 0.5),
+    inset -5px 0 7px -5px rgb(70 120 255 / 0.5), inset 0 -10px 14px -10px rgb(0 0 0 / 0.16),
+    inset 0 0 12px rgb(0 0 0 / 0.1);
+  --lens-backdrop: saturate(180%) brightness(1.08);
+  --lens-shadow: 0 14px 30px rgb(0 0 0 / 0.2), 0 3px 6px rgb(0 0 0 / 0.1);
+  /* Clear glass bubble for the add button: a light catch at the top left, a
+     faint shade at the bottom, a bright rim, and only a light blur behind. */
+  --fab-fill: radial-gradient(120% 120% at 30% 18%, rgb(255 255 255 / 0.4), rgb(255 255 255 / 0.03) 48%, rgb(255 255 255 / 0.16) 100%);
+  --fab-rim:
+    inset 2px -2px 1px -1px rgb(255 255 255 / 1), inset -2px 2px 1px -1px rgb(255 255 255 / 1),
+    inset 0 -8px 12px -8px rgb(0 0 0 / 0.2), inset 0 0 3px rgb(0 0 0 / 0.25);
+  --fab-sheen: rgb(255 255 255 / 0.55);
+  --fab-shadow: 0 14px 28px rgb(0 0 0 / 0.16), 0 3px 6px rgb(0 0 0 / 0.1);
+  --fab-blur: 2px;
+
+  /* Top bar veil and floating shadow */
+  --canvas-veil: rgb(242 242 242 / 0.92);
+  --float-shadow: 0 10px 30px rgb(0 0 0 / 0.08), 0 1px 2px rgb(0 0 0 / 0.04);
+  --blur: 12px;
+
+  /* Shape */
+  --radius-card: 28px;
+  --radius-field: 16px;
+  --radius-pill: 9999px;
+
+  /* Spacing (4px base) */
+  --sp-4: 4px;
+  --sp-8: 8px;
+  --sp-12: 12px;
+  --sp-16: 16px;
+  --sp-20: 20px;
+  --sp-24: 24px;
+  --sp-32: 32px;
+  --tabbar: 64px;
+  --tabbar-gap: 12px;
+  --fab: 56px;
+
+  /* Type */
+  --font: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, system-ui, "Helvetica Neue", Arial, sans-serif;
+  --text-nav: 11px;
+  --text-caption: 13px;
+  --text-small: 14px;
+  --text-body: 16px;
+  --text-title: 18px;
+  --text-heading: 24px;
+  --text-display: 44px;
+
+  /* Motion: one calm curve, no overshoot anywhere */
+  --fast: 150ms;
+  --base: 280ms;
+  --slow: 360ms;
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  /* Screen change, in two steps like native apps: the old screen leaves quickly
+     while speeding up, then the new one arrives slower and settles gently. */
+  --exit: 170ms;
+  --enter: 380ms;
+  --ease-exit: cubic-bezier(0.3, 0, 0.8, 0.15);
+  --ease-enter: cubic-bezier(0.05, 0.7, 0.1, 1);
+  /* Lens lifting into a bubble and settling back: a soft bounce, like the
+     "scale and bounce" Apple describes for interactive glass. */
+  --bubble: 400ms;
+  --ease-bubble: cubic-bezier(0.34, 1.36, 0.64, 1);
+  /* Lens travel between tabs: slower, accelerating out of rest and settling gently */
+  --glide: 520ms;
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  font-family: var(--font);
+  font-size: var(--text-body);
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+}
+
+/* Dark theme, chosen by the system setting. Only palette values change; every
+   semantic role above keeps pointing at the same names. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --canvas: #0f0f0f;
+    --white: #1c1c1e; /* card surface */
+    --ink: #f5f5f5;
+    --gray: #a3a3a3;
+    --faint: #6e6e6e;
+    --hairline: #2e2e30;
+    --chip: #2a2a2c;
+    --violet: #a5a7f2;
+    --red: #ff8a80;
+
+    --fill: var(--chip); /* fields need to stand off the dark card */
+    --on-primary: #111111; /* text on the now-white primary buttons */
+    --on-accent: #111111;
+    --disabled: #333335;
+
+    --glass-shadow: 0 18px 40px rgb(0 0 0 / 0.6), 0 4px 10px rgb(0 0 0 / 0.45);
+    --glass-fill: rgb(150 150 160 / 0.1);
+    --glass-rim: 
+      inset 0 0 0 1px rgb(255 255 255 / 0.16), inset 0 2px 1px -1px rgb(255 255 255 / 0.5),
+      inset 0 8px 10px -8px rgb(255 255 255 / 0.22), inset 0 -2px 1px -1px rgb(255 255 255 / 0.18),
+      inset 0 -9px 12px -9px rgb(0 0 0 / 0.5), inset 0 0 10px rgb(0 0 0 / 0.4);
+    --glass-sheen: rgb(255 255 255 / 0.08);
+    --glass-active: rgb(255 255 255 / 0.13);
+    --lens-fill: radial-gradient(130% 130% at 30% 12%, rgb(255 255 255 / 0.14), rgb(255 255 255 / 0.01) 50%, rgb(255 255 255 / 0.06) 100%);
+    --lens-rim: 
+      inset 0 0 0 1px rgb(255 255 255 / 0.32), inset 0 2px 1px -1px rgb(255 255 255 / 0.75),
+      inset 0 -2px 1px -1px rgb(255 255 255 / 0.3), inset 5px 0 7px -5px rgb(255 110 110 / 0.45),
+      inset -5px 0 7px -5px rgb(110 150 255 / 0.45), inset 0 -10px 14px -10px rgb(0 0 0 / 0.5),
+      inset 0 0 12px rgb(0 0 0 / 0.4);
+    --lens-shadow: 0 14px 30px rgb(0 0 0 / 0.6), 0 3px 6px rgb(0 0 0 / 0.45);
+    --fab-fill: radial-gradient(120% 120% at 30% 18%, rgb(255 255 255 / 0.2), rgb(255 255 255 / 0.02) 48%, rgb(255 255 255 / 0.08) 100%);
+    --fab-rim:
+      inset 2px -2px 1px -1px rgb(255 255 255 / 0.7), inset -2px 2px 1px -1px rgb(255 255 255 / 0.7),
+      inset 0 -8px 12px -8px rgb(0 0 0 / 0.5), inset 0 0 3px rgb(0 0 0 / 0.5);
+    --fab-sheen: rgb(255 255 255 / 0.2);
+    --fab-shadow: 0 14px 28px rgb(0 0 0 / 0.55), 0 3px 6px rgb(0 0 0 / 0.4);
+    --canvas-veil: rgb(15 15 15 / 0.92);
+    --float-shadow: 0 10px 30px rgb(0 0 0 / 0.5), 0 1px 2px rgb(0 0 0 / 0.4);
+  }
+}
+
+/* iOS "Reduce Transparency", or no backdrop blur: solid chrome. */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --glass-fill: var(--surface);
+    --fab-fill: var(--surface);
+    --canvas-veil: var(--bg);
+    --blur: 0px;
+  }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root {
+    --glass-fill: var(--surface);
+    --fab-fill: var(--surface);
+    --canvas-veil: var(--bg);
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.node.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.server.tsbuildinfo",
+    // Bundled by Vite, so resolve imports the way the bundler does.
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    // Node for the server itself, plus the Worker types the shared API code is written against.
+    "types": ["node", "./worker-configuration.d.ts"]
+  },
+  "include": ["src/server", "src/worker", "src/shared"]
+}

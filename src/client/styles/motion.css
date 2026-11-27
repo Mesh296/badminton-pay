@@ -1,0 +1,91 @@
+/* Motion. Only opacity and transform-type properties animate. The one place
+   with a bounce is the tab-bar lens lifting and settling; everything else
+   eases without overshoot. Navigation chrome never animates as a whole. */
+
+/* Screen change, in two steps (use-screen-transition.ts adds .leaving and
+   data-nav). Plain CSS, so it behaves the same in every browser.
+   - between tabs: fade through (old fades out, new fades in with a slight grow)
+   - into a sub-screen: both move left a little; back out: both move right */
+.screen { animation: screen-in var(--enter) var(--ease-enter) both; }
+.screen[data-nav="push"] { animation-name: screen-in-forward; }
+.screen[data-nav="pop"] { animation-name: screen-in-back; }
+.screen.leaving { animation: screen-out var(--exit) var(--ease-exit) both; }
+.screen.leaving[data-nav="push"] { animation-name: screen-out-forward; }
+.screen.leaving[data-nav="pop"] { animation-name: screen-out-back; }
+.topbar h1 { animation: fade-in var(--enter) var(--ease-enter) both; }
+@keyframes screen-in {
+  from { opacity: 0; transform: scale(0.97); }
+}
+@keyframes screen-in-forward {
+  from { opacity: 0; transform: translateX(28px); }
+}
+@keyframes screen-in-back {
+  from { opacity: 0; transform: translateX(-28px); }
+}
+@keyframes screen-out {
+  to { opacity: 0; transform: scale(0.99); }
+}
+@keyframes screen-out-forward {
+  to { opacity: 0; transform: translateX(-18px); }
+}
+@keyframes screen-out-back {
+  to { opacity: 0; transform: translateX(18px); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+}
+
+/* Gliding selection. The segmented thumb and the tab-bar lens travel with
+   ease-in-out velocity (slow start, slow stop). The lens also lifts into a
+   bubble and settles back with a soft bounce; while a finger drags it, it
+   follows almost instantly. */
+.segmented::before { transition: transform var(--glide) var(--ease-in-out); }
+.tab-indicator { transition: translate var(--glide) var(--ease-in-out), scale var(--bubble) var(--ease-bubble); }
+.tabbar.lens-dragging .tab-indicator { transition: translate 90ms linear, scale var(--bubble) var(--ease-bubble); }
+.tab-indicator::before, .tab-indicator::after { transition: opacity var(--base) var(--ease); }
+
+/* State changes ease instead of snapping */
+.button, .toggle, .segmented button, .round-button, .fab, .link, .list-row {
+  transition:
+    background-color var(--base) var(--ease),
+    color var(--base) var(--ease),
+    box-shadow var(--base) var(--ease),
+    opacity var(--fast) var(--ease),
+    transform var(--fast) var(--ease);
+}
+/* A tab swells and settles with the same bounce as the lens over it */
+.tabbar a { transition: transform var(--bubble) var(--ease-bubble), color var(--base) var(--ease); }
+.field input, .field select { transition: box-shadow var(--base) var(--ease); }
+
+/* Hover, for devices with a pointer (phones have no hover; they get the press
+   feedback below). Small lift or tint, same calm curve. Declared before the
+   press rules so pressing still wins while hovering. */
+@media (hover: hover) {
+  .button:hover:not(:disabled) { box-shadow: var(--float-shadow); transform: translateY(-2px); }
+  .button.secondary:hover:not(:disabled) { box-shadow: inset 0 0 0 1px var(--muted), var(--float-shadow); }
+  .fab:hover, .round-button:hover { transform: scale(1.06); }
+  .toggle:hover:not(:disabled):not([aria-pressed="true"]) { background: var(--active); }
+  .list-row:hover { opacity: 0.7; }
+  .link:hover, .segmented button:hover:not([aria-selected="true"]) { color: var(--text); }
+}
+
+/* Press feedback: a small dim, plus a barely-there shrink on solid buttons */
+.button:active:not(:disabled), .fab:active, .round-button:active { opacity: 0.85; transform: scale(0.98); }
+.toggle:active:not(:disabled), .list-row:active, .link:active { opacity: 0.6; }
+
+/* Things that appear: fade, with a short lift for panels */
+.share { animation: fade-in var(--base) var(--ease) both; }
+.toast { animation: drop-in var(--slow) var(--ease) both; }
+.fab { animation: fade-in var(--base) var(--ease) both; }
+@keyframes drop-in {
+  from { opacity: 0; transform: translateY(-10px); }
+}
+
+/* iOS "Reduce Motion": no movement, state changes apply instantly */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,190 @@
+/* Reset, canvas, layout shell (top bar, content, floating tab bar, add button). */
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root { max-width: 520px; margin: 0 auto; }
+
+h1, h2, h3, p { margin: 0; }
+h1, h2, h3 { font-weight: 700; letter-spacing: -0.02em; }
+ul { list-style: none; margin: 0; padding: 0; }
+a { color: inherit; text-decoration: none; }
+button, input, select { font: inherit; letter-spacing: inherit; color: inherit; }
+a, button, select, label.check { cursor: pointer; touch-action: manipulation; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* Flat white card on the gray canvas */
+.surface { border-radius: var(--radius-card); background: var(--surface); }
+
+/* Top bar: no rule line; a soft veil of the canvas so content fades under it */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+  min-height: 60px;
+  padding: env(safe-area-inset-top) var(--sp-16) 0;
+  background: var(--canvas-veil);
+  -webkit-backdrop-filter: blur(var(--blur));
+  backdrop-filter: blur(var(--blur));
+}
+/* Uppercase title, centered */
+.topbar h1 { grid-column: 2; font-size: var(--text-small); letter-spacing: 0.08em; text-align: center; text-transform: uppercase; }
+
+/* Glass, shared by the tab bar body, the add button and the back button: a
+   mostly clear fill, a light backdrop blur so the page stays visible behind,
+   inset highlights for a thick bright rim, and a soft blurred sheen in two
+   opposite corners (::after) for the curved-glass look. */
+.tabbar-glass, .fab, .round-button {
+  overflow: hidden;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  box-shadow: var(--glass-rim), var(--glass-shadow);
+}
+.tabbar-glass::after, .fab::after, .round-button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(45deg, var(--glass-sheen) 0%, transparent 24%, transparent 76%, var(--glass-sheen) 100%);
+  filter: blur(6px);
+  pointer-events: none;
+}
+/* Icons sit above the sheen so they stay crisp */
+.fab .icon, .round-button .icon { position: relative; z-index: 1; }
+
+.round-button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--glass-fill);
+  color: var(--text);
+}
+
+/* Content: bottom padding clears the tab bar, the add button and the home indicator */
+main {
+  padding: var(--sp-8) var(--sp-16) calc(var(--tabbar) + var(--tabbar-gap) + var(--fab) + env(safe-area-inset-bottom) + var(--sp-32));
+}
+.screen { display: grid; gap: var(--sp-16); }
+
+/* Floating tab bar: glass capsule. Holding and sliding a finger across it
+   moves the selection (tab-bar.tsx), so it takes over touch handling. */
+.tabbar {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + var(--tabbar-gap));
+  z-index: 20;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  width: min(calc(100% - 32px), 380px);
+  padding: 6px;
+  border-radius: 32px;
+  transform: translateX(-50%);
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+/* The bar's glass body. Kept as its own layer instead of on .tabbar, because a
+   backdrop-filter on the parent would stop the lens from seeing the page. */
+.tabbar-glass { position: absolute; inset: 0; border-radius: inherit; background: var(--glass-fill); }
+.tabbar a {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 3px;
+  min-height: calc(var(--tabbar) - 12px);
+  border-radius: 26px;
+  color: var(--muted);
+  font-size: var(--text-nav);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0;
+  /* soft halo in the canvas color keeps labels readable over whatever scrolls behind the glass */
+  text-shadow: 0 0 8px var(--bg), 0 0 2px var(--bg);
+}
+.tabbar a[aria-current="page"] { color: var(--text); }
+/* The tab under a lifted lens is magnified, as if seen through it */
+.tabbar a[data-lens] { color: var(--text); transform: scale(1.18); }
+@media (hover: hover) {
+  .tabbar a:hover { color: var(--text); }
+}
+
+/* Selection lens. It fills the current tab's slot and sits above the icons.
+   Two looks, cross-faded:
+   - ::before, at rest: a flat tinted pill
+   - ::after, lifted (pressed, dragged or traveling): a clear glass bubble
+   Position and size use the separate `translate` and `scale` properties so
+   each can have its own timing (see motion.css). --lens-x comes from tab-bar.tsx. */
+.tab-indicator {
+  position: absolute;
+  z-index: 2;
+  top: 6px;
+  bottom: 6px;
+  left: 6px;
+  width: calc((100% - 12px) / 3);
+  border-radius: var(--radius-pill);
+  translate: var(--lens-x, 0%) 0;
+  scale: 1;
+  pointer-events: none;
+}
+.tab-indicator::before, .tab-indicator::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.tab-indicator::before { background: var(--glass-active); }
+.tab-indicator::after {
+  background: var(--lens-fill);
+  -webkit-backdrop-filter: var(--lens-backdrop);
+  backdrop-filter: var(--lens-backdrop);
+  box-shadow: var(--lens-rim), var(--lens-shadow);
+  opacity: 0;
+}
+/* Lifted: the bubble grows past the bar's edge */
+.tabbar.lens-lifted .tab-indicator { scale: 1.16 1.46; }
+.tabbar.lens-lifted .tab-indicator::before { opacity: 0; }
+.tabbar.lens-lifted .tab-indicator::after { opacity: 1; }
+/* Real refraction: bend what is behind the lens and the add button near their
+   edges, using an SVG displacement filter (glass-refraction-filter.tsx). Only
+   Chromium renders an SVG filter inside backdrop-filter; Safari accepts the
+   syntax and draws nothing, so main.tsx sets data-refract on Chromium only. */
+:root[data-refract] .tab-indicator::after { backdrop-filter: url(#glass-refract) var(--lens-backdrop); }
+:root[data-refract] .fab { backdrop-filter: url(#glass-refract) blur(var(--fab-blur)) saturate(160%); }
+
+/* Round clear-glass add button, centered just above the tab bar */
+.fab {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + var(--tabbar-gap) + var(--tabbar) + var(--sp-16));
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  width: var(--fab);
+  height: var(--fab);
+  margin-left: calc(var(--fab) / -2);
+  border-radius: var(--radius-pill);
+  background: var(--fab-fill);
+  -webkit-backdrop-filter: blur(var(--fab-blur)) saturate(160%);
+  backdrop-filter: blur(var(--fab-blur)) saturate(160%);
+  box-shadow: var(--fab-rim), var(--fab-shadow);
+  color: var(--text);
+}
+.fab .icon { width: 26px; height: 26px; stroke-width: 2.25; }
+.fab::after { background: linear-gradient(45deg, var(--fab-sheen) 0%, transparent 28%, transparent 72%, var(--fab-sheen) 100%); }
+
+.icon { flex: none; width: 22px; height: 22px; stroke-width: 1.75; }
+.icon.small { width: 18px; height: 18px; }
