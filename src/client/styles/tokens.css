@@ -1,22 +1,29 @@
-/* Design tokens. Monochrome theme: soft gray canvas, white cards, black type
-   and black primary buttons, with the app icon's violet as the one accent: the
-   current tab, the add button, people's avatars, the summary card, links, and
-   "on" states. The dark theme
-   (follows the system setting) inverts it: near-black canvas, white buttons.
+/* Design tokens. Palette from colorhunt #624E88 · #8967B3 · #CB80AB · #E6D9A2:
+   a light cream canvas (the sand, washed out), white cards, plum-black type and
+   plum primary buttons; lavender for links, the current tab, the summary card
+   and what you will receive; rose for debts and drinks; avatars take turns in
+   lavender, rose and sand. The palette's own lavender and rose are too light
+   for small text on white, so text uses a step darker of each. The dark theme
+   (follows the system setting) keeps the hues on a plum-black canvas.
    Components use the semantic names below; raw colors live only here. */
 
 :root {
   color-scheme: light dark;
 
   /* Palette */
-  --canvas: #f2f2f2;
+  --canvas: #f7f3e3; /* the palette's sand #e6d9a2, washed out */
   --white: #ffffff;
-  --ink: #111111;
-  --gray: #666666;
-  --faint: #a8a8a8;
-  --hairline: #e6e6e6;
-  --chip: #ebebeb;
-  --violet: #5e4ed0; /* the icon's violet, deep enough for small text on white (6:1) */
+  --ink: #241c33;
+  --gray: #665e74; /* 5.4:1 on the canvas */
+  --faint: #b2aabd;
+  --hairline: #ece6da;
+  --chip: #efe8f6;
+  --plum: #624e88;
+  --violet: #7656a6; /* lavender #8967b3 a step darker: 5.2:1 on the canvas, for small text */
+  --lavender: #8967b3; /* marks and chart bars only (4.5:1 on white) */
+  --rose: #9a4a76; /* rose #cb80ab darkened until small text clears 4.5:1 on every wash it sits on */
+  --rose-soft: rgb(203 128 171 / 0.18);
+  --sand-ink: var(--plum);
   --red: #d70015; /* iOS's high-contrast red: 5.4:1 on white, readable as button text */
 
   /* Semantic roles */
@@ -28,20 +35,25 @@
   --line: var(--hairline);
   --fill: var(--canvas); /* inputs and unselected chips, sitting on white cards */
   --active: var(--chip); /* active tab pill, avatar disc, segmented track */
-  --primary: var(--ink); /* primary buttons and selected chips */
+  --primary: var(--plum); /* primary buttons and selected chips: white on it is 7:1 */
   --on-primary: var(--white);
   --accent: var(--violet); /* "on" toggles, positive balances, the current tab, links */
-  --accent-soft: rgb(94 78 208 / 0.12); /* violet wash: avatars, the summary card, the current tab's pill */
+  --accent-soft: rgb(137 103 179 / 0.14); /* lavender wash: avatars, the current tab's pill */
   --on-accent: var(--white);
+  --hero-fill: #ece4f6; /* the summary card: lavender, opaque so the cream canvas does not muddy it */
+  --owe: var(--rose); /* debts */
+  --owe-soft: var(--rose-soft);
+  --drink: var(--rose); /* a chosen drink, under --on-accent text */
+  --drink-soft: var(--rose-soft);
+  --sand-soft: rgb(230 217 162 / 0.45);
   --danger: var(--red); /* errors and destructive actions only */
   /* Switches, as on iPhone: green when on, translucent gray when off */
-  /* Charts: the series in the accent (a step darker in dark mode, inside the
-     chart lightness band), context in a quiet gray */
-  --chart-accent: var(--violet);
-  --chart-muted: #8e8e95; /* 3.2:1 on the card: a bar's height must stay readable */
+  /* Charts: the series in the palette's lavender, context in a quiet gray */
+  --chart-accent: var(--lavender);
+  --chart-muted: #8f849e; /* 3.5:1 on the card: a bar's height must stay readable */
   --switch-on: #34c759;
   --switch-off: rgb(120 120 128 / 0.16);
-  --disabled: #d9d9d9;
+  --disabled: #e0dae6;
   --qr-tile: #ffffff; /* stays white in both themes so bank apps can scan the code */
 
   /* Glass, for the floating controls (tab bar, add button, back button).
@@ -55,7 +67,7 @@
      shows through as soft shapes but never sits under the labels at full depth. */
   --bar-fill: rgb(255 255 255 / 0.35);
   --bar-legible: contrast(0.25) brightness(1.75);
-  --bar-muted: #4d4d4d;
+  --bar-muted: #4f4760;
   --glass-rim: 
     inset 0 0 0 1px rgb(255 255 255 / 0.7), inset 0 2px 1px -1px rgb(255 255 255 / 1),
     inset 0 8px 10px -8px rgb(255 255 255 / 0.9), inset 0 -2px 1px -1px rgb(255 255 255 / 0.6),
@@ -73,7 +85,7 @@
   --lens-backdrop: saturate(180%) brightness(1.08);
   /* The canvas as seen through the lens: --lens-backdrop applied to --canvas, precomputed
      for WebKit's copy of the tabs so it needs no filter of its own */
-  --lens-inside: #ffffff;
+  --lens-inside: #ffffe8;
   --lens-shadow: 0 14px 30px rgb(0 0 0 / 0.2), 0 3px 6px rgb(0 0 0 / 0.1);
   /* Clear glass bubble for the add button: a light catch at the top left, a
      faint shade at the bottom, a bright rim, and only a light blur behind. */
@@ -86,7 +98,7 @@
   --fab-blur: 2px;
 
   /* Top bar veil and floating shadow */
-  --canvas-veil: rgb(242 242 242 / 0.92);
+  --canvas-veil: rgb(247 243 227 / 0.92);
   --float-shadow: 0 10px 30px rgb(0 0 0 / 0.08), 0 1px 2px rgb(0 0 0 / 0.04);
   --blur: 12px;
 
@@ -151,31 +163,37 @@
    semantic role above keeps pointing at the same names. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --canvas: #0f0f0f;
-    --lens-inside: #101010;
-    --white: #1c1c1e; /* card surface */
-    --ink: #f5f5f5;
-    --gray: #a3a3a3;
-    --faint: #6e6e6e;
-    --hairline: #2e2e30;
-    --chip: #2a2a2c;
-    --violet: #a99cf6;
-    --accent-soft: rgb(169 156 246 / 0.16);
+    --canvas: #121017;
+    --lens-inside: #14101e;
+    --white: #1e1a26; /* card surface */
+    --ink: #f4f0fa;
+    --gray: #a9a1b8;
+    --faint: #6f6880;
+    --hairline: #2e2838;
+    --chip: #2a2434;
+    --plum: #c9b6ee; /* primary buttons turn light lavender, under dark text */
+    --violet: #b9a0e6;
+    --lavender: #a98bd6;
+    --rose: #e39ac2;
+    --sand-ink: #e6d9a2;
+    --accent-soft: rgb(169 140 220 / 0.16);
+    --hero-fill: #2a2338;
+    --rose-soft: rgb(227 154 194 / 0.16);
+    --sand-soft: rgb(230 217 162 / 0.14);
     --red: #ff6961; /* iOS's high-contrast red for dark backgrounds: 6:1 on the dark card */
 
     --fill: var(--chip); /* fields need to stand off the dark card */
-    --chart-accent: #9a8cf2;
-    --chart-muted: #6b6b72; /* 3.2:1 on the dark card */
+    --chart-muted: #6f6880; /* 3.2:1 on the dark card */
     --switch-on: #30d158;
     --switch-off: rgb(120 120 128 / 0.32);
-    --on-primary: #111111; /* text on the now-white primary buttons */
-    --on-accent: #111111;
-    --disabled: #333335;
+    --on-primary: #1b1424; /* text on the now-light primary buttons */
+    --on-accent: #1b1424;
+    --disabled: #34303c;
 
     --glass-shadow: 0 18px 40px rgb(0 0 0 / 0.6), 0 4px 10px rgb(0 0 0 / 0.45);
     --glass-fill: rgb(150 150 160 / 0.1);
     /* ...and into a dark band in dark mode, under light labels */
-    --bar-fill: rgb(28 28 30 / 0.35);
+    --bar-fill: rgb(30 26 38 / 0.35);
     --bar-legible: contrast(0.25) brightness(0.32);
     --bar-muted: var(--gray);
     --glass-rim: 
@@ -196,7 +214,7 @@
       inset 0 -8px 12px -8px rgb(0 0 0 / 0.5), inset 0 0 3px rgb(0 0 0 / 0.5);
     --fab-sheen: rgb(255 255 255 / 0.2);
     --fab-shadow: 0 14px 28px rgb(0 0 0 / 0.55), 0 3px 6px rgb(0 0 0 / 0.4);
-    --canvas-veil: rgb(15 15 15 / 0.92);
+    --canvas-veil: rgb(18 16 23 / 0.92);
     --float-shadow: 0 10px 30px rgb(0 0 0 / 0.5), 0 1px 2px rgb(0 0 0 / 0.4);
   }
 }

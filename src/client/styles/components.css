@@ -13,10 +13,11 @@
 /* Balance: plain text, no badge. The wording carries the meaning. */
 .balance { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .balance.credit { color: var(--accent); }
+.balance.debt { color: var(--owe); }
 .balance.zero { color: var(--muted); font-weight: 400; }
 .balance.large { font-size: var(--text-title); }
 
-/* Avatar: violet-washed disc with the member's initial */
+/* Avatar: a washed disc with the member's initial, in lavender, rose or sand by member */
 .avatar {
   flex: none;
   display: grid;
@@ -29,12 +30,14 @@
   font-weight: 700;
   letter-spacing: 0;
 }
+.avatar.tone-1 { background: var(--owe-soft); color: var(--owe); }
+.avatar.tone-2 { background: var(--sand-soft); color: var(--sand-ink); }
 .avatar.large { width: 84px; height: 84px; font-size: 34px; }
 .avatar.small { width: 32px; height: 32px; background: var(--surface); font-size: var(--text-small); }
 /* Icon disc used for sessions and transfers in lists */
 .avatar.symbol { background: var(--primary); color: var(--on-primary); }
 
-/* Buttons: black pill for the main action, white outlined pill for the rest */
+/* Buttons: plum pill for the main action, white outlined pill for the rest */
 .button {
   display: inline-flex;
   align-items: center;
@@ -97,12 +100,12 @@
 .card, .hero { display: grid; gap: var(--sp-16); padding: var(--sp-24); }
 .card h3 { font-size: var(--text-body); font-weight: 500; letter-spacing: -0.01em; }
 .card h3 strong { font-weight: 700; }
-/* The summary card at the top of a screen, with a light violet wash */
+/* The summary card at the top of a screen, in lavender */
 .hero {
   justify-items: center;
   gap: var(--sp-8);
   padding: var(--sp-32) var(--sp-24);
-  background-image: linear-gradient(var(--accent-soft) 0 0);
+  background: var(--hero-fill);
   text-align: center;
 }
 .hero h2 { font-size: var(--text-heading); line-height: 1.2; }
@@ -147,7 +150,7 @@ fieldset:disabled .toggle[aria-pressed="true"] { opacity: 1; }
 .field select {
   padding-right: 44px;
   /* chevron drawn in the muted gray (a data URI cannot read CSS variables) */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23665e74' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 14px center;
   background-size: 18px;
@@ -159,7 +162,7 @@ fieldset:disabled .toggle[aria-pressed="true"] { opacity: 1; }
 @media (prefers-color-scheme: dark) {
   /* same chevron in the dark theme's muted gray */
   .field select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a3a3a3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a9a1b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
   }
 }
 .field input:focus-visible, .field select:focus-visible { outline: 0; box-shadow: inset 0 0 0 2px var(--primary); }
@@ -171,9 +174,9 @@ fieldset:disabled .toggle[aria-pressed="true"] { opacity: 1; }
 /* Head count over the attendee picker: the big number is what people check first */
 .headcount { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-12); font-weight: 600; }
 .headcount strong { margin-right: var(--sp-4); color: var(--accent); font-size: var(--text-display); line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
-.headcount-drink { display: inline-flex; align-items: center; gap: var(--sp-4); padding: var(--sp-4) var(--sp-12); border-radius: var(--radius-pill); background: var(--accent-soft); color: var(--accent); font-size: var(--text-small); font-variant-numeric: tabular-nums; }
+.headcount-drink { display: inline-flex; align-items: center; gap: var(--sp-4); padding: var(--sp-4) var(--sp-12); border-radius: var(--radius-pill); background: var(--drink-soft); color: var(--drink); font-size: var(--text-small); font-variant-numeric: tabular-nums; }
 
-/* Attendee picker: gray pills; black when the person came, violet when they drank */
+/* Attendee picker: cream pills; plum when the person came, rose when they drank */
 .picker { display: grid; gap: var(--sp-8); }
 .picker li { display: flex; gap: var(--sp-8); }
 .toggle {
@@ -191,7 +194,7 @@ fieldset:disabled .toggle[aria-pressed="true"] { opacity: 1; }
 .toggle.name .grow { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .toggle.drink { flex: none; justify-content: center; width: 96px; color: var(--muted); }
 .toggle.name[aria-pressed="true"] { background: var(--primary); color: var(--on-primary); }
-.toggle.drink[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+.toggle.drink[aria-pressed="true"] { background: var(--drink); color: var(--on-accent); }
 .toggle:disabled { opacity: 0.45; cursor: not-allowed; }
 .share { font-weight: 600; font-variant-numeric: tabular-nums; }
 /* Session longer than an hour: an hours pill joins each row, so the drink
@@ -222,7 +225,7 @@ fieldset:disabled .toggle.hours[data-present="true"] { opacity: 1; }
   gap: var(--sp-12);
   padding: var(--sp-16);
   border-radius: var(--radius-card);
-  /* Solid, not translucent: black attendee pills scroll right behind this text. */
+  /* Solid, not translucent: plum attendee pills scroll right behind this text. */
   background: var(--surface);
   box-shadow: var(--float-shadow);
 }
@@ -232,7 +235,7 @@ fieldset:disabled .toggle.hours[data-present="true"] { opacity: 1; }
 .profile { display: grid; justify-items: center; gap: var(--sp-4); padding: var(--sp-8) 0; text-align: center; }
 .profile h2 { margin-top: var(--sp-8); font-size: var(--text-heading); line-height: 1.2; }
 .profile-avatar { position: relative; padding: 0; border: 0; border-radius: var(--radius-pill); background: none; }
-.profile-avatar .avatar.large { width: 96px; height: 96px; font-size: 40px; }
+.profile-avatar .avatar.large { width: 96px; height: 96px; background: var(--surface); font-size: 40px; }
 /* A photo fills the disc */
 img.avatar { object-fit: cover; }
 .profile-avatar.uploading { opacity: 0.5; }
@@ -363,7 +366,7 @@ img.avatar { object-fit: cover; }
 }
 .return-prompt .row-buttons { margin-top: var(--sp-8); }
 
-/* Segmented control: white track, black thumb */
+/* Segmented control: white track, plum thumb */
 .segmented {
   position: relative;
   display: grid;

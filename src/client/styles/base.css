@@ -24,7 +24,7 @@ button, input, select { font: inherit; letter-spacing: inherit; color: inherit; 
 a, button, select, label.check { cursor: pointer; touch-action: manipulation; }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
-/* Flat white card on the gray canvas */
+/* Flat white card on the cream canvas */
 .surface { border-radius: var(--radius-card); background: var(--surface); }
 
 /* Top bar: no rule line; a soft veil of the canvas so content fades under it */

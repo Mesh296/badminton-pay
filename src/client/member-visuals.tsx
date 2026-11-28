@@ -1,6 +1,6 @@
 import { formatMoney } from "./format";
 
-/** Initial of the given name (the last word in Vietnamese names) on a quiet gray disc. */
+/** Initial of the given name (the last word in Vietnamese names) on a washed disc in one of three tones. */
 export function Avatar({
   member,
   size = "",
@@ -15,7 +15,8 @@ export function Avatar({
   const lastWord = member.name.trim().split(/\s+/).pop() ?? "";
   const initial = Array.from(lastWord)[0]?.toUpperCase() ?? "?";
   return (
-    <span className={`avatar ${size}`} aria-hidden="true">
+    // Each member keeps one of the three tones (components.css .avatar.tone-*).
+    <span className={`avatar ${size} tone-${(member.id ?? 0) % 3}`} aria-hidden="true">
       {initial}
     </span>
   );
